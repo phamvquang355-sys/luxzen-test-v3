@@ -688,7 +688,8 @@ export const generateIdeaDecor = async (
        // Simple labeling for the prompt, relying on visual input context mostly
        desc = `Asset #${index + 1} (${asset.label})`;
     }
-    return `- Insert ${desc} at coordinate X:${asset.x.toFixed(0)}%, Y:${asset.y.toFixed(0)}%.`;
+    // Update logic to include width/height for region mapping
+    return `- Insert ${desc} into the region defined by bounding box: Left:${asset.x.toFixed(0)}%, Top:${asset.y.toFixed(0)}%, Width:${asset.width.toFixed(0)}%, Height:${asset.height.toFixed(0)}%. Scale to fit naturally within this zone.`;
   }));
 
   const decorPrompt = `
@@ -701,9 +702,9 @@ export const generateIdeaDecor = async (
     ${assetInstructions.join('\n')}
     
     INSTRUCTIONS:
-    1. Place the assets at the specified % coordinates (X from left, Y from top).
+    1. Place the assets at the specified regions (using X, Y, Width, Height percentages).
     2. BLENDING: Ensure the inserted objects cast realistic shadows on the floor/walls of the background. Match the color temperature and lighting direction of the background.
-    3. SCALE: Scale the objects appropriately for the perspective at that depth.
+    3. SCALE: Scale the objects appropriately for the perspective at that depth and within the defined region.
     4. If an asset image is provided (subsequent inputs), use that exact design. If no image is provided for a label, generate a high-quality object matching the label description.
     
     Output: Final photorealistic event render.
@@ -750,6 +751,62 @@ export const generateIdeaDecor = async (
     throw new Error("No decor image generated.");
   } catch (error) {
     console.error("Gemini Idea Decor Error:", error);
+    throw error;
+  }
+};
+
+/**
+ * TÍNH NĂNG MỚI: Quy trình tạo ý tưởng liền mạch (One-Pass)
+ * Tự động chạy: Sketch -> Structure (Ngầm) -> Final Result
+ */
+export const generateSeamlessIdea = async (
+  sketchImageBase64: string,
+  sketchImageMimeType: string,
+  styleImage: FileData | null,
+  styleDescription: string,
+  assets: IdeaAsset[],
+  onStatusUpdate?: (status: string) => void
+): Promise<{ structure: string; final: string }> => {
+  try {
+    // BƯỚC 1 (Chạy ngầm): Tạo khung sườn kiến trúc từ Sketch
+    if (onStatusUpdate) onStatusUpdate("Step 1: Generating Structure internally...");
+    console.log("Step 1: Generating Structure internally...");
+    
+    // Construct FileData for internal usage
+    const sketchFileData: FileData = {
+        base64: sketchImageBase64,
+        mimeType: sketchImageMimeType
+    };
+
+    // Gọi lại hàm tạo structure có sẵn, prompt tập trung vào kiến trúc thô
+    const structureImage = await generateIdeaStructure(
+      sketchFileData,
+      styleImage, // Pass style image here if available for structure
+      onStatusUpdate
+    );
+
+    // Helper to extract base64/mime from data URI
+    const splitDataURI = (uri: string) => {
+        const parts = uri.split(';base64,');
+        return { mimeType: parts[0].replace('data:', ''), base64: parts[1] };
+    };
+    const structureData = splitDataURI(structureImage);
+
+    // BƯỚC 2: Ghép Decor vào khung sườn vừa tạo
+    if (onStatusUpdate) onStatusUpdate("Step 2: Applying Decor based on Sketch pins...");
+    console.log("Step 2: Applying Decor based on Sketch pins...");
+    
+    // Gọi hàm tạo ảnh cuối cùng (Tái sử dụng hàm generateIdeaDecor)
+    const finalImage = await generateIdeaDecor(
+        structureData.base64,
+        structureData.mimeType,
+        assets,
+        onStatusUpdate
+    );
+
+    return { structure: structureImage, final: finalImage };
+  } catch (error) {
+    console.error("Seamless generation failed:", error);
     throw error;
   }
 };

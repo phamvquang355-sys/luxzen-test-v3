@@ -1,3 +1,4 @@
+
 export interface FileData {
   base64: string;
   mimeType: string;
@@ -113,8 +114,10 @@ export interface SketchConverterProps {
 // New Idea Generator Types
 export interface IdeaAsset {
   id: string;
-  x: number; // Percentage coordinate 0-100
-  y: number; // Percentage coordinate 0-100
+  x: number; // Percentage coordinate 0-100 (Top-Left)
+  y: number; // Percentage coordinate 0-100 (Top-Left)
+  width: number; // Percentage width 0-100
+  height: number; // Percentage height 0-100
   image: FileData | null;
   label: string;
 }
