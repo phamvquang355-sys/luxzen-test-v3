@@ -57,7 +57,8 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-8 bg-theme-surface rounded-2xl shadow-2xl border border-theme-gold/10">
-            <h2 className="text-3xl font-bold text-theme-gold mb-4 border-b border-theme-gold/10 pb-4">
+            {/* Heading H2 -> text-lg */}
+            <h2 className="text-lg font-bold text-theme-text-main mb-4 border-b border-theme-gold/10 pb-4">
                 Nâng Cấp Hình Ảnh AI
             </h2>
 
@@ -72,15 +73,15 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
                     />
                     
                     <div className="space-y-4">
-                        <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
+                        <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
                           Độ phân giải đầu ra
                         </label>
                         <ResolutionSelector value={resolution} onChange={(val) => onStateChange({ resolution: val })} />
                     </div>
 
                     <div className="flex justify-between items-center p-3 bg-theme-surface rounded-xl border border-theme-gold/20">
-                        <span className="text-sm text-theme-gold">Phí: <b className="text-theme-gold">{resolution === '4K' ? 30 : 20} Credits</b></span>
-                        <span className="text-sm text-theme-gold-dim">Số dư: {userCredits}</span>
+                        <span className="text-sm text-theme-text-main">Phí: <b className="text-theme-gold">{resolution === '4K' ? 30 : 20} Credits</b></span>
+                        <span className="text-sm text-theme-text-sub">Số dư: {userCredits}</span>
                     </div>
 
                     <button 
@@ -88,7 +89,7 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
                         disabled={isLoading || !sourceImage}
                         className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
                             ${isLoading || !sourceImage 
-                                ? 'bg-theme-surface2 text-theme-gold-dim cursor-not-allowed border border-theme-gold/10' 
+                                ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' 
                                 : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
                               }
                         `}
@@ -126,11 +127,11 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
                             </div>
                         </div>
                     ) : (
-                        <div className="w-full h-full border-2 border-dashed border-theme-gold/10 rounded-xl flex flex-col items-center justify-center text-theme-gold-dim bg-theme-surface/30">
+                        <div className="w-full h-full border-2 border-dashed border-theme-gold/10 rounded-xl flex flex-col items-center justify-center text-theme-text-sub bg-theme-surface/30">
                             {isLoading ? <Spinner /> : (
                                 <>
                                     <div className="text-5xl mb-4 opacity-30 text-theme-gold">✨</div>
-                                    <p className="text-lg italic text-theme-gold">Kết quả so sánh sẽ hiển thị tại đây</p>
+                                    <p className="text-lg italic text-theme-text-main">Kết quả so sánh sẽ hiển thị tại đây</p>
                                     <p className="text-sm opacity-60">Tăng cường hình ảnh của bạn với chất lượng AI.</p>
                                 </>
                             )}

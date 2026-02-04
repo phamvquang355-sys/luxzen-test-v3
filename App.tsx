@@ -8,13 +8,14 @@ import { ImageComparator } from './components/ImageComparator';
 import Upscale from './components/Upscale';
 import AdvancedEdit from './components/AdvancedEdit';
 import { SketchConverter } from './components/SketchConverter';
-import { IdeaGenerator } from './components/IdeaGenerator'; // Import IdeaGenerator
+import { IdeaGenerator } from './components/IdeaGenerator';
 
 const App: React.FC = () => {
   const [activeTool, setActiveTool] = useState<Tool>(Tool.RENDER);
   const [userCredits, setUserCredits] = useState<number>(100);
 
   // State for Render tab
+  const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
   const [sourceImage, setSourceImage] = useState<FileData | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -28,8 +29,8 @@ const App: React.FC = () => {
     textileColor2: TEXTILE_COLORS[0].value,
     additionalPrompt: '',
     hiddenAIContext: '',
-    isAutoFocus: true, // Default enabled
-    cameraPreset: 'CINEMATIC' // Default preset
+    isAutoFocus: true,
+    cameraPreset: 'CINEMATIC'
   });
 
   // State for Upscale tab
@@ -73,7 +74,7 @@ const App: React.FC = () => {
     assets: [],
     isLoading: false,
     error: null,
-    resultImages: [], // Updated to match type definition
+    resultImages: [], 
     currentStep: 'UPLOAD',
   });
 
@@ -81,6 +82,24 @@ const App: React.FC = () => {
     setRenderOptions(prev => ({ ...prev, [key]: value }));
   };
   
+  const handleToggleCustomMode = () => {
+    const nextState = !isCustomMode;
+    setIsCustomMode(nextState);
+    
+    if (!nextState) {
+        setRenderOptions(prev => ({
+            ...prev,
+            category: 'none',
+            style: 'none',
+            colorPalette: 'none',
+            surfaceMaterial: 'none',
+            textileMaterial: 'none',
+            textileColor1: 'none',
+            textileColor2: 'none'
+        }));
+    }
+  };
+
   const handleAutoPrompt = (prompt: string) => {
     setRenderOptions(prev => ({ ...prev, hiddenAIContext: prompt }));
     console.log("Hidden AI Context updated silently.");
@@ -222,7 +241,7 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-theme-base text-theme-gold font-sans selection:bg-theme-gold selection:text-theme-base">
+    <div className="min-h-screen flex flex-col bg-theme-base text-theme-text-main font-sans selection:bg-theme-gold selection:text-theme-base">
       {/* Header */}
       <header className="bg-theme-base/90 backdrop-blur-md sticky top-0 z-50 border-b border-theme-gold/20 shadow-lg shadow-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -232,28 +251,48 @@ const App: React.FC = () => {
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-theme-gold">
-              Luxe<span className="font-light opacity-80">Render</span>
+            <h1 className="text-2xl font-bold tracking-tight text-theme-text-main">
+              Luxe<span className="font-light opacity-80 text-theme-text-sub">Render</span>
             </h1>
           </div>
           <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
             {[
-                { id: Tool.RENDER, label: 'Render 3D', icon: null },
-                { id: Tool.IDEA_GENERATOR, label: 'Ý Tưởng', icon: '💡' },
-                { id: Tool.UPSCALE, label: 'Nâng Cấp', icon: null },
-                { id: Tool.ADVANCED_EDIT, label: 'Chỉnh Sửa', icon: null },
-                { id: Tool.SKETCH_CONVERTER, label: 'Phác Thảo', icon: null },
+                { 
+                    id: Tool.RENDER, 
+                    label: 'Render 3D', 
+                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                },
+                { 
+                    id: Tool.IDEA_GENERATOR, 
+                    label: 'Ý Tưởng', 
+                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                },
+                { 
+                    id: Tool.UPSCALE, 
+                    label: 'Nâng Cấp', 
+                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                },
+                { 
+                    id: Tool.ADVANCED_EDIT, 
+                    label: 'Chỉnh Sửa', 
+                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                },
+                { 
+                    id: Tool.SKETCH_CONVERTER, 
+                    label: 'Phác Thảo', 
+                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                },
             ].map(tool => (
                 <button
                 key={tool.id}
                 onClick={() => setActiveTool(tool.id as Tool)}
-                className={`px-4 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap border
+                className={`px-4 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap border flex items-center
                     ${activeTool === tool.id 
                     ? 'bg-theme-gold text-theme-base border-theme-gold shadow-[0_0_15px_rgba(217,197,180,0.3)]' 
-                    : 'bg-transparent text-theme-gold-dim border-transparent hover:bg-theme-surface hover:text-theme-gold hover:border-theme-gold/30'}
+                    : 'bg-transparent text-theme-text-sub border-transparent hover:bg-theme-surface hover:text-theme-gold hover:border-theme-gold/30'}
                 `}
                 >
-                {tool.icon && <span className="mr-1.5">{tool.icon}</span>}
+                {tool.icon && <span className="mr-2">{tool.icon}</span>}
                 {tool.label}
                 </button>
             ))}
@@ -273,12 +312,14 @@ const App: React.FC = () => {
             {/* LEFT: Controls */}
             <div className="w-full lg:w-1/3 space-y-8 bg-theme-surface p-6 md:p-8 rounded-2xl shadow-2xl border border-theme-gold/10">
               <div>
-                <h2 className="text-xl font-bold text-theme-gold mb-6 border-b border-theme-gold/10 pb-4">Thông Số Thiết Kế</h2>
+                {/* Heading H2 -> text-lg */}
+                <h2 className="text-lg font-bold text-theme-text-main mb-6 border-b border-theme-gold/10 pb-4">Thông Số Thiết Kế</h2>
                 <div className="space-y-6">
                   
                   {/* 1. Upload */}
                   <div className="space-y-2">
-                      <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
+                      {/* Label -> text-xs */}
+                      <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
                         Ảnh Gốc
                       </label>
                       <RenderImageUpload 
@@ -287,64 +328,88 @@ const App: React.FC = () => {
                         onAutoPromptGenerated={handleAutoPrompt}
                       />
                   </div>
+                  
+                  {/* TOGGLE: Chế độ Tùy chỉnh */}
+                  <div className="flex items-center justify-between bg-theme-base p-3 rounded-xl border border-theme-gold/20">
+                      <div className="flex flex-col">
+                          {/* Body Default -> text-sm */}
+                          <span className="text-sm font-bold text-theme-text-main uppercase tracking-wide">Tùy Chỉnh</span>
+                          {/* Micro/Meta -> text-[11px] */}
+                          <span className="text-[11px] text-theme-text-sub">Bật để chọn Hạng mục, Màu sắc, Vật liệu...</span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                              type="checkbox" 
+                              className="sr-only peer" 
+                              checked={isCustomMode}
+                              onChange={handleToggleCustomMode}
+                          />
+                          <div className="w-11 h-6 bg-theme-surface2 border border-theme-gold/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-theme-base after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-theme-text-sub after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-theme-gold peer-checked:after:bg-theme-base"></div>
+                      </label>
+                  </div>
 
-                  {/* 2. Options */}
-                  <OptionSelector
-                    label="Hạng Mục"
-                    options={WEDDING_CATEGORIES}
-                    value={renderOptions.category}
-                    onChange={(v) => handleOptionChange('category', v)}
-                  />
+                  {/* 2. Options (Conditional) */}
+                  {isCustomMode && (
+                      <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-300 border-l-2 border-theme-gold/20 pl-4">
+                        <OptionSelector
+                            label="Hạng Mục"
+                            options={WEDDING_CATEGORIES}
+                            value={renderOptions.category}
+                            onChange={(v) => handleOptionChange('category', v)}
+                        />
 
-                  <OptionSelector
-                    label="Phong Cách"
-                    options={WEDDING_STYLES}
-                    value={renderOptions.style}
-                    onChange={(v) => handleOptionChange('style', v)}
-                  />
+                        <OptionSelector
+                            label="Phong Cách"
+                            options={WEDDING_STYLES}
+                            value={renderOptions.style}
+                            onChange={(v) => handleOptionChange('style', v)}
+                        />
 
-                  <OptionSelector
-                    label="Bảng Màu"
-                    options={COLOR_PALETTES}
-                    value={renderOptions.colorPalette}
-                    onChange={(v) => handleOptionChange('colorPalette', v)}
-                  />
+                        <OptionSelector
+                            label="Bảng Màu"
+                            options={COLOR_PALETTES}
+                            value={renderOptions.colorPalette}
+                            onChange={(v) => handleOptionChange('colorPalette', v)}
+                        />
 
-                  <OptionSelector
-                    label="Vật Liệu Bề Mặt"
-                    options={SURFACE_MATERIALS}
-                    value={renderOptions.surfaceMaterial}
-                    onChange={(v) => handleOptionChange('surfaceMaterial', v)}
-                  />
+                        <OptionSelector
+                            label="Vật Liệu Bề Mặt"
+                            options={SURFACE_MATERIALS}
+                            value={renderOptions.surfaceMaterial}
+                            onChange={(v) => handleOptionChange('surfaceMaterial', v)}
+                        />
 
-                  <OptionSelector
-                    label="Vật Liệu Vải"
-                    options={TEXTILE_MATERIALS}
-                    value={renderOptions.textileMaterial}
-                    onChange={(v) => handleOptionChange('textileMaterial', v)}
-                  />
+                        <OptionSelector
+                            label="Vật Liệu Vải"
+                            options={TEXTILE_MATERIALS}
+                            value={renderOptions.textileMaterial}
+                            onChange={(v) => handleOptionChange('textileMaterial', v)}
+                        />
 
-                  {/* New Conditional Textile Color Selectors */}
-                  {renderOptions.textileMaterial !== 'none' && (
-                    <>
-                      <OptionSelector
-                        label="Màu Sắc Chính (Vải)"
-                        options={TEXTILE_COLORS}
-                        value={renderOptions.textileColor1}
-                        onChange={(v) => handleOptionChange('textileColor1', v)}
-                      />
-                      <OptionSelector
-                        label="Màu Sắc Phụ (Vải)"
-                        options={TEXTILE_COLORS}
-                        value={renderOptions.textileColor2}
-                        onChange={(v) => handleOptionChange('textileColor2', v)}
-                      />
-                    </>
+                        {/* New Conditional Textile Color Selectors */}
+                        {renderOptions.textileMaterial !== 'none' && (
+                            <>
+                            <OptionSelector
+                                label="Màu Sắc Chính (Vải)"
+                                options={TEXTILE_COLORS}
+                                value={renderOptions.textileColor1}
+                                onChange={(v) => handleOptionChange('textileColor1', v)}
+                            />
+                            <OptionSelector
+                                label="Màu Sắc Phụ (Vải)"
+                                options={TEXTILE_COLORS}
+                                value={renderOptions.textileColor2}
+                                onChange={(v) => handleOptionChange('textileColor2', v)}
+                            />
+                            </>
+                        )}
+                      </div>
                   )}
 
                   {/* --- PHOTOGRAPHY CONTROLS --- */}
                   <div className="p-4 bg-theme-base rounded-xl border border-theme-gold/20 mt-6">
-                      <h3 className="text-xs font-bold text-theme-gold uppercase tracking-widest mb-4 flex items-center gap-2">
+                      {/* Heading H3 -> text-base */}
+                      <h3 className="text-base font-bold text-theme-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-theme-gold"></span>
                           Nâng cấp Nhiếp Ảnh
                       </h3>
@@ -352,8 +417,10 @@ const App: React.FC = () => {
                       {/* Toggle AI Auto-Focus */}
                       <div className="flex items-center justify-between mb-4">
                           <div>
-                              <span className="font-bold block text-sm text-theme-gold">AI Auto-Focus</span>
-                              <small className="text-xs text-theme-gold-dim">Tự động lấy nét nghệ thuật</small>
+                              {/* Body Default -> text-sm */}
+                              <span className="font-bold block text-sm text-theme-text-main">AI Auto-Focus</span>
+                              {/* Micro/Meta -> text-[11px] */}
+                              <small className="text-[11px] text-theme-text-sub">Tự động lấy nét nghệ thuật</small>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer">
                               <input 
@@ -384,11 +451,12 @@ const App: React.FC = () => {
 
                   {/* 3. Text Area */}
                   <div className="space-y-2">
-                      <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
+                      {/* Label -> text-xs */}
+                      <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
                         Chi Tiết Cụ Thể
                       </label>
                       <textarea 
-                        className="w-full p-3 bg-theme-base border border-theme-gold/20 rounded-xl text-theme-gold placeholder-theme-gold-dim/50 focus:ring-1 focus:ring-theme-gold focus:border-theme-gold outline-none transition-all resize-none text-sm"
+                        className="w-full p-3 bg-theme-base border border-theme-gold/20 rounded-xl text-theme-text-main placeholder-theme-text-sub/50 focus:ring-1 focus:ring-theme-gold focus:border-theme-gold outline-none transition-all resize-none text-sm"
                         rows={3}
                         placeholder="Ví dụ: Thêm đèn chùm pha lê, đảm bảo lối đi có hiệu ứng phản chiếu, bỏ khăn phủ ghế..."
                         value={renderOptions.additionalPrompt}
@@ -402,7 +470,7 @@ const App: React.FC = () => {
                     disabled={!sourceImage || appState === AppState.GENERATING}
                     className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
                       ${!sourceImage || appState === AppState.GENERATING 
-                          ? 'bg-theme-surface2 text-theme-gold-dim cursor-not-allowed border border-theme-gold/10' 
+                          ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' 
                           : 'bg-theme-gold hover:bg-white hover:shadow-[0_0_20px_rgba(217,197,180,0.4)]'
                         }
                     `}
@@ -425,11 +493,11 @@ const App: React.FC = () => {
             <div className="w-full lg:w-2/3 h-full min-h-[700px] bg-theme-surface rounded-2xl shadow-2xl border border-theme-gold/10 p-3 relative overflow-hidden flex flex-col">
               
               {appState === AppState.IDLE && !sourceImage && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-theme-gold-dim bg-theme-base/50">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-theme-text-sub bg-theme-base/50">
                     <svg className="w-24 h-24 mb-6 opacity-30 text-theme-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="text-xl font-light italic text-theme-gold">Tuyệt tác của bạn bắt đầu từ đây.</p>
+                    <p className="text-xl font-light italic text-theme-text-main">Tuyệt tác của bạn bắt đầu từ đây.</p>
                     <p className="text-sm mt-2 opacity-70">Tải lên một bản phác thảo để bắt đầu tạo render.</p>
                 </div>
               )}
@@ -447,7 +515,7 @@ const App: React.FC = () => {
                       <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold rounded-full animate-spin border-t-transparent shadow-[0_0_20px_rgba(217,197,180,0.5)]"></div>
                     </div>
                     <h3 className="mt-8 text-xl font-bold text-theme-gold tracking-widest">AI ĐANG XỬ LÝ...</h3>
-                    <p className="text-theme-gold-dim mt-2 text-sm">Đang áp dụng vật liệu, ánh sáng và sắp xếp hoa.</p>
+                    <p className="text-theme-text-sub mt-2 text-sm">Đang áp dụng vật liệu, ánh sáng và sắp xếp hoa.</p>
                 </div>
               )}
 
@@ -532,7 +600,7 @@ const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="bg-theme-surface border-t border-theme-gold/10 py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 text-center text-theme-gold-dim text-sm">
+        <div className="max-w-7xl mx-auto px-4 text-center text-theme-text-sub text-sm">
           <p>© 2024 LuxeRender. Được hỗ trợ bởi Google Gemini AI.</p>
           <div className="flex justify-center gap-4 mt-2 opacity-50">
              <span>Chính sách bảo mật</span> • <span>Điều khoản sử dụng</span>

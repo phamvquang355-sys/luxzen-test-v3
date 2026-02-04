@@ -90,15 +90,15 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
           />
           
           {isAnalyzing && (
-            <div className="absolute inset-0 bg-theme-base/80 backdrop-blur-sm flex flex-col items-center justify-center text-theme-gold z-20">
+            <div className="absolute inset-0 bg-[#0C151A]/90 backdrop-blur-sm flex flex-col items-center justify-center text-theme-gold z-20">
               <Spinner />
-              <p className="mt-3 text-sm font-bold animate-pulse">AI ĐANG PHÂN TÍCH...</p>
+              <p className="mt-4 text-xs font-bold tracking-[0.2em] animate-pulse text-theme-gold drop-shadow-md">AI ĐANG PHÂN TÍCH...</p>
             </div>
           )}
 
           {!isAnalyzing && (
             <div className="absolute top-4 right-4 z-10">
-              <div className="bg-theme-base/90 backdrop-blur px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-[10px] font-bold text-theme-gold border border-theme-gold/20 uppercase tracking-wider">
+              <div className="bg-theme-base/90 backdrop-blur px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-[11px] font-bold text-theme-gold border border-theme-gold/20 uppercase tracking-wider">
                 <SparklesIcon /> Analyzed
               </div>
             </div>
@@ -112,11 +112,11 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
         <div className="flex flex-col items-center justify-center h-full text-theme-gold-dim p-6 text-center">
             <div className="w-16 h-16 bg-theme-surface rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border border-theme-gold/10 group-hover:border-theme-gold/50">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-theme-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                </svg>
             </div>
-            <p className="font-bold text-theme-gold text-sm uppercase tracking-wide">Tải ảnh sảnh tiệc / Mặt bằng</p>
-            <p className="text-xs mt-1 opacity-60">Kéo thả hoặc nhấn để chọn</p>
+            <p className="font-bold text-theme-text-main text-sm uppercase tracking-wide">Tải ảnh sảnh tiệc / Mặt bằng</p>
+            <p className="text-[11px] mt-1 text-theme-text-sub opacity-80">Kéo thả hoặc nhấn để chọn</p>
         </div>
       )}
     </div>

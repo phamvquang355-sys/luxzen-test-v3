@@ -115,18 +115,20 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-8 bg-theme-surface rounded-2xl shadow-2xl border border-theme-gold/10">
-            <h2 className="text-3xl font-bold text-theme-gold mb-4 border-b border-theme-gold/10 pb-4">
+            {/* H2 -> text-lg */}
+            <h2 className="text-lg font-bold text-theme-text-main mb-4 border-b border-theme-gold/10 pb-4">
                 Chỉnh Sửa Nâng Cao AI
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* PANEL ĐIỀU KHIỂN */}
                 <div className="lg:col-span-4 space-y-6 bg-theme-base p-6 rounded-2xl shadow-xl border border-theme-gold/10">
-                    <h3 className="text-lg font-bold text-theme-gold mb-4 uppercase tracking-wider">Đầu Vào & Cài Đặt</h3>
+                    {/* H3 -> text-base */}
+                    <h3 className="text-base font-bold text-theme-text-main mb-4 uppercase tracking-wider">Đầu Vào & Cài Đặt</h3>
 
                     {/* 1. Tải ảnh gốc */}
                     <div className="space-y-2">
-                        <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
+                        <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
                             1. Tải Ảnh Gốc (Cảnh Chính)
                         </label>
                         <ImageUpload 
@@ -139,19 +141,19 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     
                     {sourceImage && (
                         <div className="mt-6 space-y-4">
-                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
+                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
                                 2. Chọn Kiểu Chỉnh Sửa
                             </label>
                             <div className="flex gap-2 p-1 bg-theme-surface rounded-xl border border-theme-gold/10">
                                 <button 
                                     onClick={() => handleSetEditMode('NOTE')}
-                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'NOTE' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-gold-dim hover:text-theme-gold'}`}
+                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'NOTE' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-text-sub hover:text-theme-text-main'}`}
                                 >
                                     VẼ GHI CHÚ ✍️
                                 </button>
                                 <button 
                                     onClick={() => handleSetEditMode('SWAP')}
-                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'SWAP' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-gold-dim hover:text-theme-gold'}`}
+                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'SWAP' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-text-sub hover:text-theme-text-main'}`}
                                 >
                                     THAY THẾ VẬT THỂ 🪑
                                 </button>
@@ -161,7 +163,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
 
                     {editMode === 'NOTE' && sourceImage && (
                         <div className="mt-6 animate-in fade-in slide-in-from-top-4 space-y-4">
-                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
+                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
                                 3. Ghi chú trực quan & Văn bản
                             </label>
                             
@@ -185,12 +187,12 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
 
                              {/* Textarea for additional prompts */}
                             <div className="space-y-2 mt-4">
-                                <label className="text-[10px] font-bold text-theme-gold-dim uppercase tracking-widest">Mô tả chi tiết yêu cầu</label>
+                                <label className="text-[10px] font-bold text-theme-text-sub uppercase tracking-widest">Mô tả chi tiết yêu cầu</label>
                                 <textarea
                                     value={additionalPrompt || ''}
                                     onChange={(e) => onStateChange({ additionalPrompt: e.target.value })}
                                     placeholder="Ví dụ: Thay bình hoa cũ bằng bình hoa pha lê, thêm ánh sáng vàng ấm..."
-                                    className="w-full p-3 bg-theme-surface border border-theme-gold/20 rounded-xl focus:ring-1 focus:ring-theme-gold outline-none text-theme-gold placeholder-theme-gold-dim/50 text-sm h-32 resize-none"
+                                    className="w-full p-3 bg-theme-surface border border-theme-gold/20 rounded-xl focus:ring-1 focus:ring-theme-gold outline-none text-theme-text-main placeholder-theme-text-sub/50 text-sm h-32 resize-none"
                                 />
                             </div>
                         </div>
@@ -198,7 +200,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     
                     {editMode === 'SWAP' && sourceImage && (
                         <div className="mt-6 animate-in fade-in slide-in-from-top-4 space-y-4">
-                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
+                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
                                 3. Tải Mẫu Vật Thể Mới
                             </label>
                             <ImageUpload 
@@ -208,7 +210,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                                 quality={0.8}
                             />
                             
-                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest mt-4">
+                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest mt-4">
                                 4. Chọn Vị Trí Thay Thế Trên Ảnh Gốc
                             </label>
                             <button
@@ -220,7 +222,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                                 {clickPoint && <span className="ml-2 opacity-80">({Math.round(clickPoint.x)}%, {Math.round(clickPoint.y)}%)</span>}
                             </button>
                             {clickPoint && (
-                                <p className="text-xs text-theme-gold-dim mt-2 text-center">
+                                <p className="text-xs text-theme-text-sub mt-2 text-center">
                                     Đã chọn điểm. {detectedPoints.length > 0 ? `Đã tìm thấy ${detectedPoints.length} vật thể tương tự.` : ''}
                                 </p>
                             )}
@@ -228,8 +230,8 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     )}
 
                     <div className="flex justify-between items-center p-3 bg-theme-surface rounded-xl border border-theme-gold/20 mt-6">
-                        <span className="text-sm text-theme-gold">Phí chỉnh sửa: <b className="text-theme-gold">{AI_EDIT_COST} Credits</b></span>
-                        <span className="text-sm text-theme-gold-dim">Số dư: {userCredits}</span>
+                        <span className="text-sm text-theme-text-main">Phí chỉnh sửa: <b className="text-theme-gold">{AI_EDIT_COST} Credits</b></span>
+                        <span className="text-sm text-theme-text-sub">Số dư: {userCredits}</span>
                     </div>
 
                     <button 
@@ -237,7 +239,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                         disabled={isLoading || !sourceImage || (editMode === 'NOTE' && !annotatedBase64) || (editMode === 'SWAP' && (!refObject || !clickPoint))}
                         className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
                             ${isLoading || !sourceImage || (editMode === 'NOTE' && !annotatedBase64) || (editMode === 'SWAP' && (!refObject || !clickPoint))
-                                ? 'bg-theme-surface2 text-theme-gold-dim cursor-not-allowed border border-theme-gold/10' 
+                                ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' 
                                 : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
                             }
                         `}
@@ -269,9 +271,9 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                 {/* KHU VỰC HIỂN THỊ CHÍNH */}
                 <div className="lg:col-span-8 h-full min-h-[600px] bg-theme-base rounded-2xl shadow-xl border border-theme-gold/10 p-2 relative overflow-hidden">
                     {!sourceImage && (
-                        <div className="flex flex-col items-center justify-center h-full text-theme-gold-dim bg-theme-surface/20">
+                        <div className="flex flex-col items-center justify-center h-full text-theme-text-sub bg-theme-surface/20">
                             <div className="text-5xl mb-4 opacity-50">✨</div>
-                            <p className="text-lg italic text-theme-gold">Đang đợi ảnh thiết kế của bạn...</p>
+                            <p className="text-lg italic text-theme-text-main">Đang đợi ảnh thiết kế của bạn...</p>
                         </div>
                     )}
 
@@ -320,7 +322,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                                 <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold rounded-full animate-spin border-t-transparent"></div>
                             </div>
                             <h3 className="mt-8 text-xl font-bold text-theme-gold tracking-widest">AI ĐANG CHỈNH SỬA...</h3>
-                            <p className="text-theme-gold-dim mt-2 text-sm">Đang áp dụng các thay đổi được đánh dấu.</p>
+                            <p className="text-theme-text-sub mt-2 text-sm">Đang áp dụng các thay đổi được đánh dấu.</p>
                         </div>
                     )}
                 </div>

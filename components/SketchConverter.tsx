@@ -76,8 +76,9 @@ export const SketchConverter: React.FC<SketchConverterProps> = ({ state, onState
             {previewImage && <ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />}
             
             <div className="flex flex-col">
-                <h2 className="text-3xl font-bold text-theme-gold">Sketch Converter Pro</h2>
-                <p className="text-theme-gold-dim italic mt-1">Powered by Gemini 2.5 Image Flash • Hiệu suất cao • Kết quả tức thì</p>
+                {/* Heading H2 -> text-lg */}
+                <h2 className="text-lg font-bold text-theme-text-main">Sketch Converter Pro</h2>
+                <p className="text-theme-text-sub italic mt-1 text-sm">Powered by Gemini 2.5 Image Flash • Hiệu suất cao • Kết quả tức thì</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -101,7 +102,7 @@ export const SketchConverter: React.FC<SketchConverterProps> = ({ state, onState
                         onClick={handleGenerate} 
                         disabled={isLoading || !sourceImage || userCredits < FLASH_COST} 
                         className={`w-full py-4 rounded-xl font-bold text-theme-base transition-all shadow-lg transform active:scale-95 ${
-                            isLoading ? 'bg-theme-surface2 text-theme-gold-dim border border-theme-gold/10' : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
+                            isLoading ? 'bg-theme-surface2 text-theme-text-sub border border-theme-gold/10' : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
                         }`}
                     >
                         {isLoading ? (

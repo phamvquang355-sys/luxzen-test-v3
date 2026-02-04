@@ -252,7 +252,8 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         {/* LEFT COLUMN */}
         <div className="w-full lg:w-[30%] flex flex-col gap-4 h-full min-w-[300px] overflow-hidden">
             <div className="bg-theme-surface p-4 rounded-2xl shadow-xl border border-theme-gold/10">
-                <h3 className="text-sm font-bold text-theme-gold mb-3 uppercase tracking-widest flex items-center">
+                {/* H3 -> text-base */}
+                <h3 className="text-base font-bold text-theme-text-main mb-3 uppercase tracking-widest flex items-center">
                   <span className="bg-theme-gold text-theme-base w-5 h-5 rounded flex items-center justify-center text-xs mr-2">1</span>
                   Style Tổng Thể
                 </h3>
@@ -263,12 +264,14 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
 
             <div className="flex-1 flex flex-col bg-theme-surface rounded-2xl shadow-xl border border-theme-gold/10 overflow-hidden">
                 <div className="p-3 border-b border-theme-gold/10 bg-theme-surface2 flex justify-between items-center">
-                    <h3 className="text-xs font-bold text-theme-gold uppercase tracking-widest">Danh sách Decor ({assets.length})</h3>
-                    <span className="text-[10px] text-theme-gold-dim">Khoanh vùng ở bên phải ➔</span>
+                    {/* H3 -> text-base (scaled down slightly for list header) or keep text-xs? Prompt says H3 for sidebar section headers. This is a section header inside a panel. Let's use text-xs or text-sm for list header */}
+                    <h3 className="text-xs font-bold text-theme-text-main uppercase tracking-widest">Danh sách Decor ({assets.length})</h3>
+                    {/* Micro -> text-[11px] */}
+                    <span className="text-[11px] text-theme-text-sub">Khoanh vùng ở bên phải ➔</span>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-3">
                     {assets.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-theme-gold-dim border-2 border-dashed border-theme-gold/10 rounded-xl p-4 opacity-70">
+                    <div className="h-full flex flex-col items-center justify-center text-theme-text-sub border-2 border-dashed border-theme-gold/10 rounded-xl p-4 opacity-70">
                         <LayoutIcon />
                         <p className="mt-2 text-xs text-center">Chưa có vùng chọn nào.</p>
                     </div>
@@ -286,10 +289,10 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                                         const newAssets = assets.map(a => a.id === asset.id ? { ...a, label: e.target.value } : a);
                                         setAssets(newAssets);
                                     }}
-                                    className="font-bold text-xs text-theme-gold bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder-theme-gold-dim/50"
+                                    className="font-bold text-xs text-theme-text-main bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder-theme-text-sub/50"
                                     placeholder="Tên vật thể..."
                                 />
-                                <p className="text-[10px] text-theme-gold-dim mt-0.5">Vùng: {Math.round(asset.width)}% x {Math.round(asset.height)}%</p>
+                                <p className="text-[11px] text-theme-text-sub mt-0.5">Vùng: {Math.round(asset.width)}% x {Math.round(asset.height)}%</p>
                             </div>
                             <div className="relative w-8 h-8 flex-shrink-0">
                                 {asset.image ? (
@@ -297,10 +300,10 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                                         <img src={asset.image.objectURL} alt="Asset" className="w-full h-full object-cover rounded-md border border-theme-gold/20" />
                                     </div>
                                 ) : (
-                                    <button onClick={() => triggerAssetUpload(asset.id)} className="w-full h-full bg-theme-surface rounded-md border border-dashed border-theme-gold/30 flex items-center justify-center text-theme-gold-dim hover:text-theme-gold hover:border-theme-gold"><UploadIcon /></button>
+                                    <button onClick={() => triggerAssetUpload(asset.id)} className="w-full h-full bg-theme-surface rounded-md border border-dashed border-theme-gold/30 flex items-center justify-center text-theme-text-sub hover:text-theme-gold hover:border-theme-gold"><UploadIcon /></button>
                                 )}
                             </div>
-                            <button onClick={() => handleRemoveAsset(asset.id)} className="text-theme-gold-dim hover:text-red-500"><TrashIcon /></button>
+                            <button onClick={() => handleRemoveAsset(asset.id)} className="text-theme-text-sub hover:text-red-500"><TrashIcon /></button>
                         </div>
                     )))}
                 </div>
@@ -308,14 +311,14 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
 
             <div className="bg-theme-surface p-4 rounded-2xl shadow-xl border border-theme-gold/10 space-y-4">
                 <div>
-                    <label className="block text-xs font-bold text-theme-gold-dim mb-2 uppercase tracking-widest">Số lượng phương án</label>
+                    <label className="block text-xs font-bold text-theme-text-sub mb-2 uppercase tracking-widest">Số lượng phương án</label>
                     <div className="flex bg-theme-base rounded-xl p-1 border border-theme-gold/10">
                         {[1, 2, 3, 4].map(num => (
-                            <button key={num} onClick={() => setNumberOfImages(num)} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${numberOfImages === num ? 'bg-theme-gold text-theme-base shadow-lg' : 'text-theme-gold-dim hover:text-theme-gold'}`}>{num}</button>
+                            <button key={num} onClick={() => setNumberOfImages(num)} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${numberOfImages === num ? 'bg-theme-gold text-theme-base shadow-lg' : 'text-theme-text-sub hover:text-theme-gold'}`}>{num}</button>
                         ))}
                     </div>
                 </div>
-                <button onClick={handleGenerateOnePass} disabled={!sketchImage || isProcessing} className={`w-full py-4 text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${!sketchImage || isProcessing ? 'bg-theme-surface2 text-theme-gold-dim cursor-not-allowed border border-theme-gold/10' : 'bg-theme-gold text-theme-base hover:bg-white hover:shadow-theme-gold/40'}`}>{isProcessing ? <Spinner /> : <WandIcon />} 
+                <button onClick={handleGenerateOnePass} disabled={!sketchImage || isProcessing} className={`w-full py-4 text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${!sketchImage || isProcessing ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' : 'bg-theme-gold text-theme-base hover:bg-white hover:shadow-theme-gold/40'}`}>{isProcessing ? <Spinner /> : <WandIcon />} 
                     {result && result.final.length > 0 ? "GHÉP ĐỒ (BƯỚC 2)" : "TẠO Ý TƯỞNG"}
                 </button>
             </div>
@@ -324,12 +327,12 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         {/* RIGHT COLUMN: SKETCH CANVAS */}
         <div className="w-full lg:w-[70%] h-full flex flex-col">
              <div className="bg-theme-surface p-4 rounded-2xl shadow-xl border border-theme-gold/10 h-full flex flex-col relative group">
-                <h3 className="text-sm font-bold text-theme-gold mb-3 uppercase tracking-widest flex items-center justify-between">
+                <h3 className="text-base font-bold text-theme-text-main mb-3 uppercase tracking-widest flex items-center justify-between">
                     <span className="flex items-center">
                         <span className="bg-theme-gold text-theme-base w-5 h-5 rounded flex items-center justify-center text-xs mr-2">2</span>
                         Phác thảo & Khoanh vùng
                     </span>
-                    <button onClick={() => { setSketchImage(null); setAssets([]); setResult(null); onStateChange({ sourceSketch: null, assets: [] }); }} className="text-theme-gold-dim hover:text-red-500 transition-colors" title="Xóa tất cả"><TrashIcon /></button>
+                    <button onClick={() => { setSketchImage(null); setAssets([]); setResult(null); onStateChange({ sourceSketch: null, assets: [] }); }} className="text-theme-text-sub hover:text-red-500 transition-colors" title="Xóa tất cả"><TrashIcon /></button>
                 </h3>
                 
                 {/* CONTAINER CHO CANVAS */}
@@ -393,7 +396,7 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                         </>
                     )}
                 </div>
-                 <div className="mt-3 text-xs text-theme-gold-dim flex justify-between">
+                 <div className="mt-3 text-xs text-theme-text-sub flex justify-between">
                      <p>💡 Kéo chuột để tạo vùng. Vùng chọn sẽ tự động bám sát ảnh.</p>
                      <p>{sketchImage ? `${Math.round(sketchImage.width || 0)} x ${Math.round(sketchImage.height || 0)} px` : ''}</p>
                  </div>
@@ -405,7 +408,8 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
       {result && (
         <div className="w-full bg-theme-surface p-6 rounded-2xl shadow-2xl border border-theme-gold/10 animate-in fade-in slide-in-from-bottom-8 duration-500 mb-8">
              <div className="flex justify-between items-center mb-6 border-b border-theme-gold/10 pb-4">
-                <h3 className="text-xl font-bold text-theme-gold flex items-center gap-2">✨ Kết quả Ý Tưởng ({result.final.length})</h3>
+                {/* Result Title -> text-lg */}
+                <h3 className="text-lg font-bold text-theme-gold flex items-center gap-2">✨ Kết quả Ý Tưởng ({result.final.length})</h3>
                 <div className="flex gap-2">
                      <button onClick={() => setShowDebugStructure(!showDebugStructure)} className={`text-sm px-4 py-2 rounded-lg border transition-colors flex items-center gap-2 ${showDebugStructure ? 'bg-theme-gold text-theme-base border-theme-gold' : 'text-theme-gold border-theme-gold/30 hover:bg-theme-base'}`}><LayersIcon /> {showDebugStructure ? 'Đang xem Khung Sườn' : 'Xem Khung Sườn'}</button>
                      <button onClick={() => setResult(null)} className="text-sm text-red-400 hover:text-red-300 px-4 py-2 rounded-lg transition-colors">Đóng kết quả</button>
