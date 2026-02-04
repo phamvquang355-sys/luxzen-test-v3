@@ -211,10 +211,32 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
   const handleGenerateOnePass = async () => {
     if (!sketchImage) return;
     setIsProcessing(true);
-    setProcessStatus('Đang phân tích không gian & Dựng decor...');
-
+    
     try {
       const styleDesc = styleImage ? "Follow the visual style of the reference image exactly." : `Professional Wedding Design`;
+      
+      // Logic xác định xem đây là Bước 1 hay Bước 2
+      let backgroundOverride: FileData | undefined = undefined;
+
+      // Nếu đã có kết quả (result.final có ảnh) và user bấm tạo lại (có thể do thêm assets),
+      // thì coi đó là Bước 2 (Step 2: Decor Only)
+      if (result && result.final && result.final.length > 0) {
+          const currentResultDataURI = result.final[0];
+          const parts = currentResultDataURI.split(';base64,');
+          const mimeType = parts[0].replace('data:', '');
+          const base64 = parts[1];
+          
+          backgroundOverride = {
+              base64: base64,
+              mimeType: mimeType,
+              objectURL: currentResultDataURI // Optional, mainly for display
+          };
+          
+          setProcessStatus('Đang ghép Decor vào không gian có sẵn (Bước 2)...');
+      } else {
+          setProcessStatus('Đang dựng không gian kiến trúc & Decor (Bước 1)...');
+      }
+
       const data = await geminiService.generateSeamlessIdea(
         sketchImage.base64,
         sketchImage.mimeType,
@@ -222,8 +244,10 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         styleDesc,
         assets,
         numberOfImages,
-        (status) => setProcessStatus(status)
+        (status) => setProcessStatus(status),
+        backgroundOverride // Pass the existing result as background if available
       );
+
       setResult(data);
       setProcessStatus('Hoàn tất!');
     } catch (error) {
@@ -312,7 +336,9 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                         ))}
                     </div>
                 </div>
-                <button onClick={handleGenerateOnePass} disabled={!sketchImage || isProcessing} className={`w-full py-3 text-sm font-bold rounded-lg shadow-md transition-all flex items-center justify-center gap-2 ${!sketchImage || isProcessing ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:scale-[1.02] hover:shadow-blue-500/25'}`}>{isProcessing ? <Spinner /> : <WandIcon />} TẠO Ý TƯỞNG</button>
+                <button onClick={handleGenerateOnePass} disabled={!sketchImage || isProcessing} className={`w-full py-3 text-sm font-bold rounded-lg shadow-md transition-all flex items-center justify-center gap-2 ${!sketchImage || isProcessing ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:scale-[1.02] hover:shadow-blue-500/25'}`}>{isProcessing ? <Spinner /> : <WandIcon />} 
+                    {result && result.final.length > 0 ? "GHÉP ĐỒ (BƯỚC 2)" : "TẠO Ý TƯỞNG"}
+                </button>
             </div>
         </div>
 
