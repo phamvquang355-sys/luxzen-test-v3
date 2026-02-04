@@ -132,7 +132,7 @@ export interface IdeaGeneratorState {
   assets: IdeaAsset[];
   isLoading: boolean;
   error: string | null;
-  resultImage: string | null; // Result of Pass 2 (Decor)
+  resultImages: string[]; // Updated: Array of results
   currentStep: IdeaStep;
 }
 

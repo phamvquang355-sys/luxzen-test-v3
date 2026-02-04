@@ -73,7 +73,7 @@ const App: React.FC = () => {
     assets: [],
     isLoading: false,
     error: null,
-    resultImage: null,
+    resultImages: [], // Updated to match type definition
     currentStep: 'UPLOAD',
   });
 
@@ -186,7 +186,7 @@ const App: React.FC = () => {
       assets: [],
       isLoading: false,
       error: null,
-      resultImage: null,
+      resultImages: [], // Updated to match type definition
       currentStep: 'UPLOAD',
     });
   };

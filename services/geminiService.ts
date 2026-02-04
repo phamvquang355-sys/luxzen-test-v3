@@ -163,6 +163,11 @@ const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
   ${assetInstructions}
 
   STRICT RULES FOR SCALING & PLACEMENT:
+  0. [CRITICAL] BOUNDING BOX COMPLIANCE: 
+     - The coordinates (x, y, w, h) provided are ABSOLUTE constraints. 
+     - You MUST place the object strictly within these bounds. 
+     - DO NOT resize or move the object outside this box even if you think it looks better.
+     - Imagine a grid 0-100 overlay on the image and place the pixels exactly there.
   1. VANISHING POINT: Align all objects to the room's primary vanishing point.
   2. CONTACT SHADOWS: All objects touching the floor MUST have realistic ambient occlusion and contact shadows to prevent the "floating" effect.
   3. RELATIVE SCALE: Compare objects to human scale equivalents. (e.g., A flower vase cannot be larger than a chair; A wedding arch must be taller than a person).
@@ -729,8 +734,9 @@ export const generateIdeaDecor = async (
   baseImageBase64: string, // Base image from Pass 1
   baseImageMimeType: string,
   assets: IdeaAsset[],
+  imageCount: number, // New parameter
   onStatusUpdate?: (status: string) => void
-): Promise<string> => {
+): Promise<string[]> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing.");
   }
@@ -770,8 +776,6 @@ export const generateIdeaDecor = async (
       parts.push({ 
         inlineData: { mimeType: asset.image.mimeType, data: asset.image.base64 } 
       });
-      // Add a text marker to link this image to the instruction if needed, 
-      // though simple ordering or context usually suffices for Gemini 1.5+.
       parts.push({ text: `[Reference Image for Asset #${index + 1}]` });
     }
   });
@@ -779,25 +783,37 @@ export const generateIdeaDecor = async (
   if (onStatusUpdate) onStatusUpdate("Đang hoàn thiện bản phối cảnh cuối cùng...");
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image', // Stick to same model for consistency
-      contents: { parts: parts },
-      config: {
-        systemInstruction: "You are an expert Image Compositor and Decorator. Seamlessly blend objects into a scene."
-      }
-    });
+    const images: string[] = [];
+    
+    // Since Gemini 2.5 Flash Image doesn't support 'candidateCount' or 'sampleCount' 
+    // consistently in the SDK to return multiple images in one request for this specific model type in all regions,
+    // we will loop to generate multiple variations if requested. This is safe and robust.
+    for (let i = 0; i < imageCount; i++) {
+        if (onStatusUpdate && imageCount > 1) onStatusUpdate(`Đang tạo phương án ${i + 1}/${imageCount}...`);
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: { parts: parts },
+            config: {
+                systemInstruction: "You are an expert Image Compositor and Decorator. Seamlessly blend objects into a scene."
+            }
+        });
 
-    if (response.candidates && response.candidates.length > 0) {
-      const content = response.candidates[0].content;
-      if (content && content.parts) {
-        for (const part of content.parts) {
-          if (part.inlineData && part.inlineData.data) {
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-          }
+        if (response.candidates && response.candidates.length > 0) {
+            const content = response.candidates[0].content;
+            if (content && content.parts) {
+                for (const part of content.parts) {
+                    if (part.inlineData && part.inlineData.data) {
+                        images.push(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`);
+                    }
+                }
+            }
         }
-      }
     }
-    throw new Error("No decor image generated.");
+
+    if (images.length === 0) throw new Error("No decor image generated.");
+    return images;
+
   } catch (error) {
     console.error("Gemini Idea Decor Error:", error);
     throw error;
@@ -814,8 +830,9 @@ export const generateSeamlessIdea = async (
   styleImage: FileData | null,
   styleDescription: string,
   assets: IdeaAsset[],
+  imageCount: number = 1, // New parameter with default
   onStatusUpdate?: (status: string) => void
-): Promise<{ structure: string; final: string }> => {
+): Promise<{ structure: string; final: string[] }> => {
   try {
     // BƯỚC 1 (Chạy ngầm): Tạo khung sườn kiến trúc từ Sketch
     if (onStatusUpdate) onStatusUpdate("Step 1: Generating Structure internally...");
@@ -846,14 +863,15 @@ export const generateSeamlessIdea = async (
     console.log("Step 2: Applying Decor based on Sketch pins...");
     
     // Gọi hàm tạo ảnh cuối cùng (Tái sử dụng hàm generateIdeaDecor)
-    const finalImage = await generateIdeaDecor(
+    const finalImages = await generateIdeaDecor(
         structureData.base64,
         structureData.mimeType,
         assets,
+        imageCount, // Pass count
         onStatusUpdate
     );
 
-    return { structure: structureImage, final: finalImage };
+    return { structure: structureImage, final: finalImages };
   } catch (error) {
     console.error("Seamless generation failed:", error);
     throw error;
