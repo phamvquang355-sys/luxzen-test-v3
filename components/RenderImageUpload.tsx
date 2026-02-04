@@ -1,11 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { FileData } from '../types';
 import { resizeAndCompressImage, generatePromptFromImageAndText } from '../services/geminiService'; 
-import { Spinner } from './Spinner'; // Giả định bạn đã có component này
+import { Spinner } from './Spinner';
 
 interface RenderImageUploadProps {
   onImageUpload: (data: FileData) => void;
-  onAutoPromptGenerated?: (prompt: string) => void; // Thêm callback để trả về prompt tự động
+  onAutoPromptGenerated?: (prompt: string) => void;
   currentImage: FileData | null;
 }
 
@@ -16,7 +16,7 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false); // Trạng thái AI đang "đọc" ảnh
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleFileChange = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -27,9 +27,6 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
     try {
       setIsAnalyzing(true);
       const objectURL = URL.createObjectURL(file);
-
-      // 1. Tối ưu hóa ảnh để gửi API
-      // Updated to receive width and height from resizeAndCompressImage
       const { base64: optimizedBase64, mimeType: optimizedMimeType, width, height } = await resizeAndCompressImage(file, 1024, 0.8);
       
       const fileData: FileData = {
@@ -37,16 +34,13 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
         base64: optimizedBase64,
         mimeType: optimizedMimeType,
         objectURL,
-        width, // Store width
-        height // Store height
+        width,
+        height
       };
 
-      // 2. Trả ảnh về cho component cha
       onImageUpload(fileData);
 
-      // 3. TÍNH NĂNG TRAO QUYỀN: AI tự động phân tích không gian sự kiện
       if (onAutoPromptGenerated) {
-        // Gửi lệnh đặc thù cho ngành Wedding/Event (Updated for Hidden Context)
         const instruction = "Phân tích kiến trúc không gian này về màu sắc, ánh sáng và vật liệu gốc. Viết ngắn gọn dưới dạng prompt kỹ thuật.";
         const autoPrompt = await generatePromptFromImageAndText(fileData, instruction);
         onAutoPromptGenerated(autoPrompt);
@@ -70,8 +64,8 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
 
   return (
     <div 
-      className={`relative group border-2 border-dashed rounded-2xl transition-all duration-500 overflow-hidden cursor-pointer
-        ${isDragging ? 'border-purple-500 bg-purple-50' : 'border-zinc-200 bg-white hover:border-purple-300'}
+      className={`relative group border-2 border-dashed rounded-2xl transition-all duration-300 overflow-hidden cursor-pointer
+        ${isDragging ? 'border-theme-gold bg-theme-gold/10' : 'border-theme-gold/20 bg-theme-base hover:border-theme-gold/50 hover:bg-theme-base/80'}
         ${currentImage ? 'h-72' : 'h-48'}
       `}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -92,48 +86,45 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
           <img 
             src={currentImage.objectURL} 
             alt="Event Space" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
           />
           
-          {/* Overlay khi AI đang phân tích */}
           {isAnalyzing && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white z-20">
+            <div className="absolute inset-0 bg-theme-base/80 backdrop-blur-sm flex flex-col items-center justify-center text-theme-gold z-20">
               <Spinner />
-              <p className="mt-3 text-sm font-medium animate-pulse">AI đang phân tích ngầm kiến trúc...</p>
+              <p className="mt-3 text-sm font-bold animate-pulse">AI ĐANG PHÂN TÍCH...</p>
             </div>
           )}
 
-          {/* Nút Magic để kích hoạt lại phân tích (Trao quyền chủ động) */}
           {!isAnalyzing && (
             <div className="absolute top-4 right-4 z-10">
-              <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+              <div className="bg-theme-base/90 backdrop-blur px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-[10px] font-bold text-theme-gold border border-theme-gold/20 uppercase tracking-wider">
                 <SparklesIcon /> Analyzed
               </div>
             </div>
           )}
 
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <p className="text-white bg-black/50 px-4 py-2 rounded-full text-sm font-bold">Thay đổi ảnh không gian</p>
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+            <p className="text-theme-base bg-theme-gold px-4 py-2 rounded-full text-sm font-bold shadow-lg transform scale-95 group-hover:scale-100 transition-transform">Thay đổi ảnh</p>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center h-full text-zinc-400 p-6 text-center">
-            <div className="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div className="flex flex-col items-center justify-center h-full text-theme-gold-dim p-6 text-center">
+            <div className="w-16 h-16 bg-theme-surface rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border border-theme-gold/10 group-hover:border-theme-gold/50">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-theme-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                </svg>
             </div>
-            <p className="font-bold text-zinc-800 text-sm">Tải lên ảnh sảnh tiệc hoặc mặt bằng</p>
-            <p className="text-xs mt-1">AI sẽ tự động nhận diện kiến trúc và gợi ý concept</p>
+            <p className="font-bold text-theme-gold text-sm uppercase tracking-wide">Tải ảnh sảnh tiệc / Mặt bằng</p>
+            <p className="text-xs mt-1 opacity-60">Kéo thả hoặc nhấn để chọn</p>
         </div>
       )}
     </div>
   );
 };
 
-// Icon trang trí
 const SparklesIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
     </svg>
 );

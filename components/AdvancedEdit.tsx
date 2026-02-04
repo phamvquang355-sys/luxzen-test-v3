@@ -5,14 +5,14 @@ import { Spinner } from './Spinner';
 import { ImageUpload } from './common/ImageUpload';
 import { ImageComparator } from './ImageComparator';
 import { AnnotationCanvas } from './AnnotationCanvas';
-import { PointSelectorModal } from './PointSelectorModal'; // Import the new modal
+import { PointSelectorModal } from './PointSelectorModal'; 
 
-const AI_EDIT_COST = 35; // Credits for Advanced AI editing
-const DETECTION_COST = 5; // Credits for detecting similar objects (still defined here for cost management, but logic moved)
+const AI_EDIT_COST = 35; 
+const DETECTION_COST = 5; 
 
 const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userCredits, onDeductCredits, onReset }) => {
     const { sourceImage, editMode, refObject, annotatedBase64, clickPoint, detectedPoints, resultImage, isLoading, error, isAnnotating, additionalPrompt } = state;
-    const [isPointSelectionModalOpen, setIsPointSelectionModalOpen] = useState(false); // New state for modal
+    const [isPointSelectionModalOpen, setIsPointSelectionModalOpen] = useState(false); 
 
     const handleFileSelect = (data: FileData) => {
         onStateChange({ sourceImage: data, annotatedBase64: null, resultImage: null, error: null, clickPoint: null, refObject: null, isAnnotating: false, detectedPoints: [] });
@@ -23,9 +23,8 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
     };
 
     const handleSetEditMode = (mode: EditMode) => {
-        // Fix: Removed 'isPointSelectionModalOpen' as it's a local state and not part of AdvancedEditState
         onStateChange({ editMode: mode, annotatedBase64: null, clickPoint: null, resultImage: null, error: null, refObject: null, detectedPoints: [] });
-        setIsPointSelectionModalOpen(false); // Manually set local state
+        setIsPointSelectionModalOpen(false); 
     };
 
     const handleStartAnnotation = () => {
@@ -44,9 +43,6 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
         onStateChange({ isAnnotating: false });
     };
 
-    // Removed handleClickPoint as it's now handled by the modal
-
-    // Callback from PointSelectorModal
     const handleSavePointSelection = (point: ClickPoint, newDetectedPoints: ClickPoint[]) => {
         onStateChange({ 
             clickPoint: point, 
@@ -89,12 +85,11 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     sourceImage.base64,
                     sourceImage.mimeType,
                     'NOTE',
-                    { base64: annotatedBase64, mimeType: 'image/jpeg' }, // AnnotationCanvas exports JPEG
+                    { base64: annotatedBase64, mimeType: 'image/jpeg' }, 
                     undefined,
                     additionalPrompt
                 );
             } else if (editMode === 'SWAP' && refObject && clickPoint) {
-                // If detectedPoints exist, use them for batch swap. Otherwise, use the single clickPoint.
                 const targetPointsForSwap = detectedPoints.length > 0 ? detectedPoints : [clickPoint];
                 
                 result = await geminiService.generateAdvancedEdit(
@@ -102,7 +97,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     sourceImage.mimeType,
                     'SWAP',
                     { base64: refObject.base64, mimeType: refObject.mimeType },
-                    targetPointsForSwap // Pass the array of target points
+                    targetPointsForSwap 
                 );
             }
             onStateChange({ resultImage: result });
@@ -119,44 +114,44 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4 md:p-8 bg-zinc-900/10 rounded-2xl shadow-inner">
-            <h2 className="text-3xl font-serif font-bold text-luxury-900 mb-4">
+        <div className="flex flex-col gap-6 p-4 md:p-8 bg-theme-surface rounded-2xl shadow-2xl border border-theme-gold/10">
+            <h2 className="text-3xl font-bold text-theme-gold mb-4 border-b border-theme-gold/10 pb-4">
                 Chỉnh Sửa Nâng Cao AI
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* PANEL ĐIỀU KHIỂN */}
-                <div className="lg:col-span-4 space-y-6 bg-white p-6 rounded-2xl shadow-xl border border-luxury-100">
-                    <h3 className="text-xl font-serif font-bold text-luxury-900 mb-4">Đầu Vào & Cài Đặt</h3>
+                <div className="lg:col-span-4 space-y-6 bg-theme-base p-6 rounded-2xl shadow-xl border border-theme-gold/10">
+                    <h3 className="text-lg font-bold text-theme-gold mb-4 uppercase tracking-wider">Đầu Vào & Cài Đặt</h3>
 
                     {/* 1. Tải ảnh gốc */}
                     <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-luxury-800 uppercase tracking-wider">
+                        <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
                             1. Tải Ảnh Gốc (Cảnh Chính)
                         </label>
                         <ImageUpload 
                             onFileSelect={handleFileSelect} 
                             previewUrl={sourceImage?.objectURL || null}
-                            maxWidth={1280} // Optimal for detail preservation
+                            maxWidth={1280} 
                             quality={0.9}
                         />
                     </div>
                     
                     {sourceImage && (
                         <div className="mt-6 space-y-4">
-                            <label className="block text-sm font-semibold text-luxury-800 uppercase tracking-wider">
+                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
                                 2. Chọn Kiểu Chỉnh Sửa
                             </label>
-                            <div className="flex gap-2 p-1 bg-luxury-50 rounded-lg">
+                            <div className="flex gap-2 p-1 bg-theme-surface rounded-xl border border-theme-gold/10">
                                 <button 
                                     onClick={() => handleSetEditMode('NOTE')}
-                                    className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${editMode === 'NOTE' ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg' : 'bg-white text-luxury-800 hover:bg-luxury-100'}`}
+                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'NOTE' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-gold-dim hover:text-theme-gold'}`}
                                 >
                                     VẼ GHI CHÚ ✍️
                                 </button>
                                 <button 
                                     onClick={() => handleSetEditMode('SWAP')}
-                                    className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${editMode === 'SWAP' ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-lg' : 'bg-white text-luxury-800 hover:bg-luxury-100'}`}
+                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'SWAP' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-gold-dim hover:text-theme-gold'}`}
                                 >
                                     THAY THẾ VẬT THỂ 🪑
                                 </button>
@@ -166,14 +161,14 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
 
                     {editMode === 'NOTE' && sourceImage && (
                         <div className="mt-6 animate-in fade-in slide-in-from-top-4 space-y-4">
-                            <label className="block text-xs font-bold text-luxury-900 uppercase tracking-widest">
+                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
                                 3. Ghi chú trực quan & Văn bản
                             </label>
                             
                             {!annotatedBase64 && !isAnnotating && (
                                 <button
                                     onClick={handleStartAnnotation}
-                                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-md"
+                                    className="w-full py-3 bg-theme-surface2 border border-theme-gold text-theme-gold rounded-xl font-bold hover:bg-theme-gold hover:text-theme-base transition-colors shadow-lg"
                                 >
                                     BẮT ĐẦU CHÚ THÍCH
                                 </button>
@@ -182,7 +177,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                             {(annotatedBase64 || isAnnotating) && (
                                 <button
                                     onClick={handleStartAnnotation}
-                                    className={`w-full py-3 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2 ${annotatedBase64 ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}
+                                    className={`w-full py-3 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 ${annotatedBase64 ? 'bg-green-700/80 text-white border border-green-500' : 'bg-blue-600 text-white'}`}
                                 >
                                     {annotatedBase64 ? '✅ ĐÃ VẼ GHI CHÚ' : '✍️ ĐANG VẼ...'}
                                 </button>
@@ -190,12 +185,12 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
 
                              {/* Textarea for additional prompts */}
                             <div className="space-y-2 mt-4">
-                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Mô tả chi tiết yêu cầu</label>
+                                <label className="text-[10px] font-bold text-theme-gold-dim uppercase tracking-widest">Mô tả chi tiết yêu cầu</label>
                                 <textarea
                                     value={additionalPrompt || ''}
                                     onChange={(e) => onStateChange({ additionalPrompt: e.target.value })}
                                     placeholder="Ví dụ: Thay bình hoa cũ bằng bình hoa pha lê, thêm ánh sáng vàng ấm..."
-                                    className="w-full p-3 bg-luxury-50 border border-luxury-200 rounded-xl focus:ring-2 focus:ring-accent-400 outline-none text-slate-700 text-sm h-32 resize-none"
+                                    className="w-full p-3 bg-theme-surface border border-theme-gold/20 rounded-xl focus:ring-1 focus:ring-theme-gold outline-none text-theme-gold placeholder-theme-gold-dim/50 text-sm h-32 resize-none"
                                 />
                             </div>
                         </div>
@@ -203,105 +198,105 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     
                     {editMode === 'SWAP' && sourceImage && (
                         <div className="mt-6 animate-in fade-in slide-in-from-top-4 space-y-4">
-                            <label className="block text-sm font-semibold text-luxury-800 uppercase tracking-wider">
+                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
                                 3. Tải Mẫu Vật Thể Mới
                             </label>
                             <ImageUpload 
                                 onFileSelect={handleRefObjectSelect} 
                                 previewUrl={refObject?.objectURL || null}
-                                maxWidth={512} // Smaller for reference object
+                                maxWidth={512} 
                                 quality={0.8}
                             />
                             
-                            <label className="block text-sm font-semibold text-luxury-800 uppercase tracking-wider mt-4">
+                            <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest mt-4">
                                 4. Chọn Vị Trí Thay Thế Trên Ảnh Gốc
                             </label>
                             <button
                                 onClick={() => setIsPointSelectionModalOpen(true)}
-                                className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-md"
+                                className="w-full py-3 bg-theme-surface2 text-theme-gold border border-theme-gold/50 rounded-xl font-bold hover:bg-theme-gold hover:text-theme-base transition-colors shadow-md"
                                 disabled={isLoading}
                             >
                                 {clickPoint ? "Thay Đổi Vị Trí Đã Chọn" : "Chọn Vị Trí Thay Thế"}
-                                {clickPoint && <span className="ml-2 text-white/80">({Math.round(clickPoint.x)}%, {Math.round(clickPoint.y)}%)</span>}
+                                {clickPoint && <span className="ml-2 opacity-80">({Math.round(clickPoint.x)}%, {Math.round(clickPoint.y)}%)</span>}
                             </button>
                             {clickPoint && (
-                                <p className="text-xs text-luxury-600 mt-2 text-center">
+                                <p className="text-xs text-theme-gold-dim mt-2 text-center">
                                     Đã chọn điểm. {detectedPoints.length > 0 ? `Đã tìm thấy ${detectedPoints.length} vật thể tương tự.` : ''}
                                 </p>
                             )}
                         </div>
                     )}
 
-                    <div className="flex justify-between items-center p-3 bg-luxury-50 rounded-lg border border-luxury-100 mt-6">
-                        <span className="text-sm text-luxury-800">Phí chỉnh sửa: <b className="text-accent-600">{AI_EDIT_COST} Credits</b></span>
-                        <span className="text-sm text-luxury-500">Số dư: {userCredits}</span>
+                    <div className="flex justify-between items-center p-3 bg-theme-surface rounded-xl border border-theme-gold/20 mt-6">
+                        <span className="text-sm text-theme-gold">Phí chỉnh sửa: <b className="text-theme-gold">{AI_EDIT_COST} Credits</b></span>
+                        <span className="text-sm text-theme-gold-dim">Số dư: {userCredits}</span>
                     </div>
 
                     <button 
                         onClick={handleGenerate}
                         disabled={isLoading || !sourceImage || (editMode === 'NOTE' && !annotatedBase64) || (editMode === 'SWAP' && (!refObject || !clickPoint))}
-                        className={`w-full py-4 px-6 rounded-lg font-bold text-white tracking-widest shadow-lg transition-all transform hover:-translate-y-0.5
+                        className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
                             ${isLoading || !sourceImage || (editMode === 'NOTE' && !annotatedBase64) || (editMode === 'SWAP' && (!refObject || !clickPoint))
-                                ? 'bg-luxury-300 cursor-not-allowed' 
-                                : 'bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-500 hover:to-accent-400 shadow-accent-200/50'
+                                ? 'bg-theme-surface2 text-theme-gold-dim cursor-not-allowed border border-theme-gold/10' 
+                                : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
                             }
                         `}
                     >
                         {isLoading ? <Spinner /> : "BẮT ĐẦU CHỈNH SỬA ✨"}
                     </button>
-                    {error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
+                    {error && <p className="text-red-400 text-xs text-center mt-2">{error}</p>}
                     
                     {resultImage && (
                         <div className="flex justify-center gap-4 py-2 mt-4">
                             <a 
                                 href={resultImage} 
                                 download="ai-edited-image.png"
-                                className="px-6 py-2 bg-luxury-900 text-white rounded-full text-sm font-bold hover:bg-luxury-800 transition-colors shadow-md flex items-center gap-2"
+                                className="px-6 py-2 bg-theme-gold text-theme-base rounded-full text-sm font-bold hover:bg-white transition-colors shadow-md flex items-center gap-2"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                Tải Ảnh Chỉnh Sửa
+                                Tải Ảnh
                             </a>
                             <button 
                                 onClick={resetCurrentTab}
-                                className="px-6 py-2 bg-white text-luxury-800 border border-luxury-300 rounded-full text-sm font-bold hover:bg-luxury-50 transition-colors"
+                                className="px-6 py-2 bg-theme-surface2 text-theme-gold border border-theme-gold/20 rounded-full text-sm font-bold hover:bg-theme-gold hover:text-theme-base transition-colors"
                             >
-                                Chỉnh Sửa Mới
+                                Làm Mới
                             </button>
                         </div>
                     )}
                 </div>
 
                 {/* KHU VỰC HIỂN THỊ CHÍNH */}
-                <div className="lg:col-span-8 h-full min-h-[600px] bg-white rounded-2xl shadow-xl border border-luxury-100 p-2 relative overflow-hidden">
+                <div className="lg:col-span-8 h-full min-h-[600px] bg-theme-base rounded-2xl shadow-xl border border-theme-gold/10 p-2 relative overflow-hidden">
                     {!sourceImage && (
-                        <div className="flex flex-col items-center justify-center h-full text-luxury-300 bg-luxury-50/50">
-                            <div className="text-5xl mb-4">✨</div>
-                            <p className="text-lg font-serif italic">Đang đợi ảnh thiết kế của bạn...</p>
+                        <div className="flex flex-col items-center justify-center h-full text-theme-gold-dim bg-theme-surface/20">
+                            <div className="text-5xl mb-4 opacity-50">✨</div>
+                            <p className="text-lg italic text-theme-gold">Đang đợi ảnh thiết kế của bạn...</p>
                         </div>
                     )}
 
                     {sourceImage && !resultImage && (
                         <div className="relative w-full h-full">
-                            {editMode === 'NOTE' && (annotatedBase64 || !isAnnotating) && ( // Show source or annotated image
-                                <div className="w-full h-full flex items-center justify-center bg-black rounded-xl overflow-hidden">
-                                    <img src={annotatedBase64 ? `data:image/jpeg;base64,${annotatedBase64}` : sourceImage.objectURL} alt="Nguồn để chú thích" className="max-w-full max-h-[600px] object-contain" />
+                            {editMode === 'NOTE' && (annotatedBase64 || !isAnnotating) && ( 
+                                <div className="w-full h-full flex items-center justify-center bg-black/40 rounded-xl overflow-hidden backdrop-blur-sm">
+                                    <img src={annotatedBase64 ? `data:image/jpeg;base64,${annotatedBase64}` : sourceImage.objectURL} alt="Nguồn để chú thích" className="max-w-full max-h-[600px] object-contain shadow-2xl" />
                                 </div>
                             )}
                             {editMode === 'SWAP' && (
-                                <div className="relative w-full h-full flex items-center justify-center bg-black rounded-xl overflow-hidden">
+                                <div className="relative w-full h-full flex items-center justify-center bg-black/40 rounded-xl overflow-hidden backdrop-blur-sm">
                                     <img 
                                         src={sourceImage.objectURL} 
                                         alt="Nguồn để thay thế"
-                                        className="max-w-full max-h-[600px] object-contain"
+                                        className="max-w-full max-h-[600px] object-contain shadow-2xl"
                                     />
                                     {clickPoint && (
-                                        <div className="absolute w-6 h-6 bg-accent-500/50 border-2 border-white rounded-full animate-pulse"
+                                        <div className="absolute w-6 h-6 bg-theme-gold/50 border-2 border-white rounded-full animate-pulse shadow-[0_0_10px_rgba(217,197,180,0.8)]"
                                              style={{ left: `${clickPoint.x}%`, top: `${clickPoint.y}%`, transform: 'translate(-50%, -50%)' }} />
                                     )}
                                     {detectedPoints.map((point, index) => (
                                         <div 
                                             key={`detected-${index}`}
-                                            className="absolute w-4 h-4 bg-red-500/50 border-1 border-white rounded-full"
+                                            className="absolute w-4 h-4 bg-red-500/50 border-1 border-white rounded-full shadow-md"
                                             style={{ left: `${point.x}%`, top: `${point.y}%`, transform: 'translate(-50%, -50%)' }} 
                                         />
                                     ))}
@@ -311,19 +306,21 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     )}
 
                     {resultImage && sourceImage && (
-                        <div className="h-full">
-                            <ImageComparator originalImage={sourceImage.objectURL || ''} generatedImage={resultImage} />
+                        <div className="h-full flex flex-col">
+                            <div className="flex-1 min-h-0 bg-black/40 rounded-xl overflow-hidden">
+                                <ImageComparator originalImage={sourceImage.objectURL || ''} generatedImage={resultImage} />
+                            </div>
                         </div>
                     )}
 
                     {isLoading && (
-                        <div className="absolute inset-0 z-20 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center">
+                        <div className="absolute inset-0 z-20 bg-theme-base/80 backdrop-blur-md flex flex-col items-center justify-center">
                             <div className="relative w-32 h-32">
-                                <div className="absolute top-0 left-0 w-full h-full border-4 border-luxury-200 rounded-full animate-ping opacity-75"></div>
-                                <div className="absolute top-0 left-0 w-full h-full border-4 border-accent-500 rounded-full animate-spin border-t-transparent"></div>
+                                <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold/20 rounded-full animate-ping opacity-50"></div>
+                                <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold rounded-full animate-spin border-t-transparent"></div>
                             </div>
-                            <h3 className="mt-8 text-xl font-serif font-bold text-luxury-800">AI Đang chỉnh sửa ảnh...</h3>
-                            <p className="text-luxury-600 mt-2">Đang áp dụng các thay đổi được đánh dấu.</p>
+                            <h3 className="mt-8 text-xl font-bold text-theme-gold tracking-widest">AI ĐANG CHỈNH SỬA...</h3>
+                            <p className="text-theme-gold-dim mt-2 text-sm">Đang áp dụng các thay đổi được đánh dấu.</p>
                         </div>
                     )}
                 </div>
@@ -333,8 +330,8 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     image={sourceImage.objectURL || ''} 
                     onSave={handleSaveAnnotation} 
                     onCancel={handleCancelAnnotation} 
-                    originalImageWidth={sourceImage.width || 1} // Pass native image dimensions
-                    originalImageHeight={sourceImage.height || 1} // Pass native image dimensions
+                    originalImageWidth={sourceImage.width || 1} 
+                    originalImageHeight={sourceImage.height || 1} 
                 />
             )}
             {isPointSelectionModalOpen && sourceImage && (
@@ -347,8 +344,8 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     onSavePointAndDetections={handleSavePointSelection}
                     onDeductCredits={onDeductCredits}
                     userCredits={userCredits}
-                    originalImageWidth={sourceImage.width || 1} // Pass native image dimensions
-                    originalImageHeight={sourceImage.height || 1} // Pass native image dimensions
+                    originalImageWidth={sourceImage.width || 1} 
+                    originalImageHeight={sourceImage.height || 1} 
                 />
             )}
         </div>

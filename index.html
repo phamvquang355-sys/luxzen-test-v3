@@ -5,30 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LuxeRender - AI Diễn Họa Đám Cưới</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Sử dụng Questrial làm fallback vì nó có nét Geometric Sans rất giống UTM Avo -->
+    <link href="https://fonts.googleapis.com/css2?family=Questrial&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
               serif: ['"Playfair Display"', 'serif'],
-              sans: ['"Lato"', 'sans-serif'],
+              sans: ['"UTM Avo"', '"Questrial"', 'sans-serif'], // Ưu tiên UTM Avo
             },
             colors: {
+              // Bảng màu mới theo yêu cầu
+              theme: {
+                base: '#1C2526',       // Nền chính
+                surface: '#253031',    // Nền các thẻ/card (Lighter version of base)
+                surface2: '#2F3C3D',   // Nền phụ/Hover
+                gold: '#D9C5B4',       // Màu chữ chính/Accent
+                'gold-dim': '#A69588', // Màu chữ phụ
+                'gold-dark': '#7A6B60', // Border tối
+              },
               luxury: {
-                50: '#fdf8f6',
-                100: '#f2e8e5',
-                200: '#eaddd7',
-                300: '#e0cec7',
-                400: '#d2bab0',
-                500: '#a18072', // Gold/Bronze-ish
-                600: '#8a6a5d',
-                800: '#5e453d',
-                900: '#3d2b25',
+                // Giữ lại một số mapping cũ nhưng override giá trị để tương thích code cũ nếu cần
+                50: '#2F3C3D',
+                100: '#253031',
+                200: '#1C2526', // Dark Base
+                300: '#7A6B60',
+                400: '#A69588',
+                500: '#D9C5B4', // Main Accent
+                600: '#C4B0A0',
+                800: '#D9C5B4', // Text headings usually
+                900: '#D9C5B4', // Text headings
               },
               accent: {
-                500: '#d4af37', // Classic Gold
-                600: '#b4941f',
+                500: '#D9C5B4', // Button Primary
+                600: '#C4B0A0', // Button Hover
               }
             }
           }
@@ -37,25 +48,44 @@
     </script>
     <style>
       body {
-        font-family: 'Lato', sans-serif;
-        background-color: #fdf8f6;
+        font-family: 'UTM Avo', 'Questrial', sans-serif;
+        background-color: #1C2526;
+        color: #D9C5B4;
       }
       h1, h2, h3, h4, h5, h6 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'UTM Avo', 'Questrial', sans-serif; /* Ưu tiên dùng Sans cho hiện đại, hoặc Playfair nếu muốn cổ điển */
+        font-weight: 700;
       }
-      /* Custom Scrollbar */
+      /* Custom Scrollbar for Dark Mode */
       ::-webkit-scrollbar {
         width: 8px;
+        height: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: #1C2526;
       }
       ::-webkit-scrollbar-thumb {
-        background: #d2bab0;
+        background: #2F3C3D;
         border-radius: 4px;
+        border: 1px solid #1C2526;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #a18072;
+        background: #D9C5B4;
+      }
+      
+      /* Input autofill fix for dark mode */
+      input:-webkit-autofill,
+      input:-webkit-autofill:hover, 
+      input:-webkit-autofill:focus, 
+      textarea:-webkit-autofill,
+      textarea:-webkit-autofill:hover,
+      textarea:-webkit-autofill:focus,
+      select:-webkit-autofill,
+      select:-webkit-autofill:hover,
+      select:-webkit-autofill:focus {
+        -webkit-text-fill-color: #D9C5B4;
+        -webkit-box-shadow: 0 0 0px 1000px #253031 inset;
+        transition: background-color 5000s ease-in-out 0s;
       }
     </style>
   <script type="importmap">

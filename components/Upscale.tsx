@@ -2,16 +2,16 @@ import React from 'react';
 import { FileData, UpscaleState, UpscaleProps } from '../types';
 import { Spinner } from './Spinner';
 import { ImageUpload } from './common/ImageUpload';
-import { ImageComparator } from './ImageComparator'; // Reuse existing ImageComparator
-import { ResolutionSelector } from './common/ResolutionSelector'; // Add this import
-import * as geminiService from '../services/geminiService'; // Import geminiService
+import { ImageComparator } from './ImageComparator'; 
+import { ResolutionSelector } from './common/ResolutionSelector'; 
+import * as geminiService from '../services/geminiService'; 
 
 // --- MAIN COMPONENT ---
 const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0, onDeductCredits, onReset }) => {
     const { sourceImage, isLoading, error, upscaledImages, resolution } = state;
 
     const handleUpscale = async () => {
-        const cost = resolution === '4K' ? 30 : 20; // Corrected cost logic
+        const cost = resolution === '4K' ? 30 : 20; 
         if (userCredits < cost) {
             onStateChange({ error: `Bạn cần thêm ${cost - userCredits} Credits.` });
             return;
@@ -26,7 +26,6 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
         try {
             await onDeductCredits?.(cost, `Strict Upscale ${resolution}`);
 
-            // PROMPT CHIẾN THUẬT: Tập trung vào "Faithful Reconstruction" (Tái tạo trung thực)
             const strictPrompt = `
                 TASK: HIGH-FIDELITY PHOTOREALISTIC UPSCALING.
                 ENHANCE the provided image to a hyper-realistic, high-definition 8k render.
@@ -39,7 +38,7 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
             const result = await geminiService.generateHighQualityImage(
                 strictPrompt, 
                 resolution, 
-                { // Pass the sourceImage details directly
+                { 
                   mimeType: sourceImage.mimeType, 
                   base64: sourceImage.base64,
                   width: sourceImage.width,
@@ -57,80 +56,82 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4 md:p-8 bg-zinc-900/10 rounded-2xl shadow-inner">
-            <h2 className="text-3xl font-serif font-bold text-luxury-900 mb-4">
+        <div className="flex flex-col gap-6 p-4 md:p-8 bg-theme-surface rounded-2xl shadow-2xl border border-theme-gold/10">
+            <h2 className="text-3xl font-bold text-theme-gold mb-4 border-b border-theme-gold/10 pb-4">
                 Nâng Cấp Hình Ảnh AI
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Panel Điều khiển */}
-                <div className="lg:col-span-4 space-y-6 bg-white p-6 rounded-2xl shadow-xl border border-luxury-100">
+                <div className="lg:col-span-4 space-y-6 bg-theme-base p-6 rounded-2xl shadow-xl border border-theme-gold/10">
                     <ImageUpload 
                         onFileSelect={(data) => onStateChange({ sourceImage: data, upscaledImages: [] })} 
                         previewUrl={sourceImage?.objectURL || null} 
-                        maxWidth={1280} // Max width for internal processing for consistency
-                        quality={0.9} // Quality for internal processing for consistency
+                        maxWidth={1280} 
+                        quality={0.9} 
                     />
                     
                     <div className="space-y-4">
-                        <label className="block text-sm font-semibold text-luxury-800 uppercase tracking-wider">
+                        <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
                           Độ phân giải đầu ra
                         </label>
                         <ResolutionSelector value={resolution} onChange={(val) => onStateChange({ resolution: val })} />
                     </div>
 
-                    <div className="flex justify-between items-center p-3 bg-luxury-50 rounded-lg border border-luxury-100">
-                        <span className="text-sm text-luxury-800">Phí: <b className="text-accent-600">{resolution === '4K' ? 30 : 20} Credits</b></span>
-                        <span className="text-sm text-luxury-500">Số dư: {userCredits}</span>
+                    <div className="flex justify-between items-center p-3 bg-theme-surface rounded-xl border border-theme-gold/20">
+                        <span className="text-sm text-theme-gold">Phí: <b className="text-theme-gold">{resolution === '4K' ? 30 : 20} Credits</b></span>
+                        <span className="text-sm text-theme-gold-dim">Số dư: {userCredits}</span>
                     </div>
 
                     <button 
                         onClick={handleUpscale}
                         disabled={isLoading || !sourceImage}
-                        className={`w-full py-4 px-6 rounded-lg font-bold text-white tracking-widest shadow-lg transition-all transform hover:-translate-y-0.5
+                        className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
                             ${isLoading || !sourceImage 
-                                ? 'bg-luxury-300 cursor-not-allowed' 
-                                : 'bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 shadow-purple-200/50'
+                                ? 'bg-theme-surface2 text-theme-gold-dim cursor-not-allowed border border-theme-gold/10' 
+                                : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
                               }
                         `}
                     >
                         {isLoading ? <Spinner /> : `NÂNG CẤP ( -${resolution === '4K' ? 30 : 20} CREDITS )`}
                     </button>
-                    {error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
+                    {error && <p className="text-red-400 text-xs text-center mt-2">{error}</p>}
                 </div>
 
                 {/* Khu vực Hiển thị Kết quả */}
-                <div className="lg:col-span-8 h-[600px] bg-white rounded-2xl shadow-xl border border-luxury-100 p-2 relative overflow-hidden">
+                <div className="lg:col-span-8 h-[600px] bg-theme-base rounded-2xl shadow-xl border border-theme-gold/10 p-2 relative overflow-hidden">
                     {upscaledImages.length > 0 && sourceImage ? (
                         <div className="h-full flex flex-col gap-4">
-                            <ImageComparator 
-                                originalImage={sourceImage.objectURL || ''} 
-                                generatedImage={upscaledImages[0]} 
-                            />
+                            <div className="flex-1 min-h-0 bg-black/40 rounded-xl overflow-hidden">
+                                <ImageComparator 
+                                    originalImage={sourceImage.objectURL || ''} 
+                                    generatedImage={upscaledImages[0]} 
+                                />
+                            </div>
                             <div className="flex justify-center gap-4 py-2">
                                 <a 
                                     href={upscaledImages[0]} 
                                     download={`upscaled-image-${resolution}.png`}
-                                    className="px-6 py-2 bg-luxury-900 text-white rounded-full text-sm font-bold hover:bg-luxury-800 transition-colors shadow-md flex items-center gap-2"
+                                    className="px-8 py-2.5 bg-theme-gold text-theme-base rounded-full text-sm font-bold hover:bg-white transition-colors shadow-lg flex items-center gap-2"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                    Tải Ảnh Nâng Cấp
+                                    Tải Ảnh
                                 </a>
                                 <button 
                                     onClick={onReset}
-                                    className="px-6 py-2 bg-white text-luxury-800 border border-luxury-300 rounded-full text-sm font-bold hover:bg-luxury-50 transition-colors"
+                                    className="px-6 py-2.5 bg-theme-surface text-theme-gold border border-theme-gold/30 rounded-full text-sm font-bold hover:bg-theme-gold hover:text-theme-base transition-colors"
                                 >
-                                    Nâng Cấp Mới
+                                    Làm Mới
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="w-full h-full border-2 border-dashed border-luxury-300 rounded-xl flex flex-col items-center justify-center text-luxury-500 bg-luxury-50/50">
+                        <div className="w-full h-full border-2 border-dashed border-theme-gold/10 rounded-xl flex flex-col items-center justify-center text-theme-gold-dim bg-theme-surface/30">
                             {isLoading ? <Spinner /> : (
                                 <>
-                                    <div className="text-5xl mb-4">✨</div>
-                                    <p className="text-lg font-serif italic">Kết quả so sánh sẽ hiển thị tại đây</p>
-                                    <p className="text-sm text-luxury-400">Tăng cường hình ảnh của bạn với chất lượng AI.</p>
+                                    <div className="text-5xl mb-4 opacity-30 text-theme-gold">✨</div>
+                                    <p className="text-lg italic text-theme-gold">Kết quả so sánh sẽ hiển thị tại đây</p>
+                                    <p className="text-sm opacity-60">Tăng cường hình ảnh của bạn với chất lượng AI.</p>
                                 </>
                             )}
                         </div>

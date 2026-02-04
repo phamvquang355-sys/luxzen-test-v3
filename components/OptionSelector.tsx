@@ -13,7 +13,7 @@ interface OptionSelectorProps {
 export const OptionSelector: React.FC<OptionSelectorProps> = ({ label, options, value, onChange, variant = 'select' }) => {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-luxury-800 uppercase tracking-wider">
+      <label className="block text-xs font-bold text-theme-gold-dim uppercase tracking-widest">
         {label}
       </label>
       
@@ -23,10 +23,10 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({ label, options, 
                 <button
                     key={option.value}
                     onClick={() => onChange(option.value)}
-                    className={`p-3 rounded-lg text-sm font-medium transition-all border ${
+                    className={`p-3 rounded-xl text-sm font-bold transition-all border ${
                         value === option.value 
-                        ? 'bg-luxury-800 text-white border-luxury-800 shadow-md' 
-                        : 'bg-white text-luxury-600 border-luxury-200 hover:border-luxury-400 hover:bg-luxury-50'
+                        ? 'bg-theme-gold text-theme-base border-theme-gold shadow-lg shadow-theme-gold/20' 
+                        : 'bg-theme-base text-theme-gold-dim border-theme-gold/20 hover:border-theme-gold hover:text-theme-gold hover:bg-theme-base/80'
                     }`}
                 >
                     {option.label}
@@ -38,15 +38,15 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({ label, options, 
             <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full appearance-none bg-white border border-luxury-300 text-luxury-900 py-3 px-4 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-all shadow-sm"
+            className="w-full appearance-none bg-theme-base border border-theme-gold/20 text-theme-gold py-3 px-4 pr-8 rounded-xl focus:outline-none focus:ring-1 focus:ring-theme-gold focus:border-theme-gold transition-all shadow-sm cursor-pointer"
             >
             {options.map((option) => (
-                <option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value} className="bg-theme-surface text-theme-gold py-2">
                 {option.label}
                 </option>
             ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-luxury-600">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-theme-gold">
             <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
             </svg>
@@ -55,7 +55,7 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({ label, options, 
       )}
       
       {/* Description display for selected item */}
-      <p className="text-xs text-luxury-500 italic h-4">
+      <p className="text-[10px] text-theme-gold-dim/70 italic h-3 mt-1 truncate">
         {options.find(o => o.value === value)?.description || ''}
       </p>
     </div>

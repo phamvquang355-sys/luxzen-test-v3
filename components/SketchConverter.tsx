@@ -20,7 +20,6 @@ export const SketchConverter: React.FC<SketchConverterProps> = ({ state, onState
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
     
-    // Thiết lập mức giá cố định 10 Credits cho mô hình Gemini 2.5 Flash
     const FLASH_COST = 10;
 
     const handleGenerate = async () => {
@@ -63,7 +62,6 @@ export const SketchConverter: React.FC<SketchConverterProps> = ({ state, onState
     const handleDownload = async () => {
         if (!resultImage) return;
         setIsDownloading(true);
-        // Simple download trigger
         const link = document.createElement('a');
         link.href = resultImage;
         link.download = `sketch-flash-${Date.now()}.png`;
@@ -78,13 +76,13 @@ export const SketchConverter: React.FC<SketchConverterProps> = ({ state, onState
             {previewImage && <ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />}
             
             <div className="flex flex-col">
-                <h2 className="text-3xl font-serif font-bold text-luxury-900">Sketch Converter Pro</h2>
-                <p className="text-luxury-500 italic">Powered by Gemini 2.5 Image Flash • Hiệu suất cao • Kết quả tức thì</p>
+                <h2 className="text-3xl font-bold text-theme-gold">Sketch Converter Pro</h2>
+                <p className="text-theme-gold-dim italic mt-1">Powered by Gemini 2.5 Image Flash • Hiệu suất cao • Kết quả tức thì</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Panel Điều khiển */}
-                <div className="lg:col-span-4 space-y-6 bg-white p-6 rounded-2xl shadow-xl border border-luxury-100">
+                <div className="lg:col-span-4 space-y-6 bg-theme-surface p-6 rounded-2xl shadow-xl border border-theme-gold/10">
                     <ImageUpload 
                         onFileSelect={(f) => onStateChange({ sourceImage: f, resultImage: null })} 
                         previewUrl={sourceImage?.objectURL || null} 
@@ -102,8 +100,8 @@ export const SketchConverter: React.FC<SketchConverterProps> = ({ state, onState
                     <button 
                         onClick={handleGenerate} 
                         disabled={isLoading || !sourceImage || userCredits < FLASH_COST} 
-                        className={`w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg active:scale-95 ${
-                            isLoading ? 'bg-luxury-300' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'
+                        className={`w-full py-4 rounded-xl font-bold text-theme-base transition-all shadow-lg transform active:scale-95 ${
+                            isLoading ? 'bg-theme-surface2 text-theme-gold-dim border border-theme-gold/10' : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
                         }`}
                     >
                         {isLoading ? (
@@ -113,47 +111,47 @@ export const SketchConverter: React.FC<SketchConverterProps> = ({ state, onState
                         ) : `Bắt đầu Render 3D Realism (10 Credits)`}
                     </button>
                     
-                    {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-xs border border-red-100">{error}</div>}
+                    {error && <div className="p-3 bg-red-900/20 text-red-400 rounded-lg text-xs border border-red-900/30 text-center">{error}</div>}
                 </div>
 
                 {/* Panel Hiển thị */}
-                <div className="lg:col-span-8 bg-zinc-50 rounded-2xl border-2 border-dashed border-luxury-200 overflow-hidden relative min-h-[500px]">
+                <div className="lg:col-span-8 bg-theme-base rounded-2xl border-2 border-dashed border-theme-gold/10 overflow-hidden relative min-h-[500px]">
                     {resultImage && sourceImage ? (
                         <div className="h-full flex flex-col p-4">
                             <div className="flex justify-between items-center mb-4">
-                                <span className="text-xs font-bold uppercase tracking-wider text-luxury-400 bg-white px-3 py-1 rounded-full shadow-sm">Kết quả Flash</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-base bg-theme-gold px-3 py-1 rounded-full shadow-sm">Kết quả Flash</span>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setPreviewImage(resultImage)} className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 text-gray-600">
+                                    <button onClick={() => setPreviewImage(resultImage)} className="p-2 bg-theme-surface rounded-full shadow-sm hover:bg-theme-gold hover:text-theme-base text-theme-gold transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
                                     </button>
                                     <button 
                                         onClick={handleDownload} 
                                         disabled={isDownloading}
-                                        className="px-4 py-2 bg-black text-white rounded-lg text-sm font-bold flex items-center gap-2"
+                                        className="px-4 py-2 bg-theme-gold text-theme-base rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-white transition-colors"
                                     >
                                         {isDownloading ? <Spinner /> : <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
                                         Tải ảnh
                                     </button>
                                 </div>
                             </div>
-                            <div className="flex-1 rounded-xl overflow-hidden bg-white shadow-2xl">
+                            <div className="flex-1 rounded-xl overflow-hidden bg-black shadow-2xl border border-theme-gold/5">
                                 <ImageComparator originalImage={sourceImage.objectURL || ''} generatedImage={resultImage} />
                             </div>
                         </div>
                     ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-luxury-300">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-theme-gold-dim">
                             {isLoading ? (
                                 <div className="flex flex-col items-center gap-4">
                                     <div className="relative">
-                                        <div className="absolute inset-0 rounded-full blur-xl bg-purple-400/30 animate-pulse"></div>
+                                        <div className="absolute inset-0 rounded-full blur-xl bg-theme-gold/20 animate-pulse"></div>
                                         <Spinner />
                                     </div>
-                                    <p className="font-medium animate-pulse">{statusMessage}</p>
+                                    <p className="font-bold text-theme-gold animate-pulse tracking-wide">{statusMessage}</p>
                                 </div>
                             ) : (
                                 <>
-                                    <div className="text-5xl mb-4 opacity-50">✨</div>
-                                    <p className="font-serif italic text-lg text-luxury-400">Chọn ảnh phối cảnh để bắt đầu trải nghiệm Flash</p>
+                                    <div className="text-5xl mb-4 opacity-30 text-theme-gold">✨</div>
+                                    <p className="italic text-lg text-theme-gold">Chọn ảnh phối cảnh để bắt đầu trải nghiệm Flash</p>
                                 </>
                             )}
                         </div>
