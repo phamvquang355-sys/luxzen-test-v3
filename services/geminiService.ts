@@ -8,6 +8,17 @@ const WEDDING_MATERIALS_KEYWORDS = {
   lighting: "cinematic volumetric lighting, warm amber ambient glow, professional stage spotlights, Tyndall effect"
 };
 
+// 1. Thêm hằng số định nghĩa quy tắc bố cục nghiêm ngặt
+const COMPOSITION_RULE_PROMPT = `
+=== CAMERA & COMPOSITION RULES (NON-NEGOTIABLE) ===
+1. PRESERVE FRAMING: Do NOT crop, zoom, or change the camera angle. The output image must match the exact field of view of the source sketch.
+2. SAFE ZONE ENFORCEMENT: 
+   - Maintain the subject within the central 80% of the width (leaving 10% padding on Left/Right).
+   - Maintain the subject within the vertical 70% (leaving 10% padding Top, 20% padding Bottom).
+3. NEGATIVE SPACE: Respect the whitespace/background in the sketch. Do not fill the entire frame if the sketch implies empty space.
+===================================================
+`;
+
 /**
  * Resize and compress an image to optimize for upload speed and API cost.
  * @param file The original file from input.
@@ -150,7 +161,7 @@ const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
     - BOUNDING BOX: x=${Math.round(asset.x)}%, y=${Math.round(asset.y)}%, w=${Math.round(asset.width)}%, h=${Math.round(asset.height)}%
     - SPATIAL ZONE: ${depthContext}
     - SHAPE HINT: ${shapeHint}
-    - SCALE REQUIREMENT: Render this object with realistic physical proportions relative to the room height.
+    - SCALE: Maintain scale relative to the fixed composition defined above.
     ${asset.image ? "- VISUAL REFERENCE: Use the provided crop image strictly for style and structure." : ""}
     `;
   }).join('\n');
@@ -158,13 +169,16 @@ const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
   // Trả về một khối Prompt kỹ thuật (System Instruction)
   return `
   \n========== SPATIAL & PERSPECTIVE INSTRUCTIONS (CRITICAL) ==========
+  ${COMPOSITION_RULE_PROMPT}
+
   You are performing 'Perspective-Aware Photobashing'. You MUST place the following objects into the scene with perfect architectural perspective:
 
   ${assetInstructions}
 
   STRICT RULES FOR SCALING & PLACEMENT:
   0. [CRITICAL] BOUNDING BOX COMPLIANCE: 
-     - The coordinates (x, y, w, h) provided are ABSOLUTE constraints. 
+     - The coordinates (x, y, w, h) provided are ABSOLUTE constraints relative to the FULL FRAME.
+     - Because NO CROPPING is allowed, these coordinates map 1:1 to the output pixels.
      - You MUST place the object strictly within these bounds. 
      - DO NOT resize or move the object outside this box even if you think it looks better.
      - Imagine a grid 0-100 overlay on the image and place the pixels exactly there.
