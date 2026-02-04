@@ -118,6 +118,60 @@ MỤC TIÊU: Tạo ra bản render 8k siêu thực nhưng khi đặt cạnh ản
 };
 
 /**
+ * [MỚI] Hàm tạo chỉ thị không gian (Spatial Instructions)
+ * Giúp AI hiểu vị trí và tỉ lệ vật thể dựa trên tọa độ bounding box.
+ */
+const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
+  if (!assets || assets.length === 0) return "";
+
+  // Mapping từng vật thể thành văn bản mô tả kỹ thuật
+  const assetInstructions = assets.map((asset, index) => {
+    // Logic xác định độ sâu dựa trên trục Y (Giả định ảnh góc nhìn ngang tầm mắt)
+    // Y cao (gần 100%) = Tiền cảnh (Gần camera)
+    // Y thấp (gần 0%) = Hậu cảnh (Xa camera) hoặc trên trần
+    
+    let depthContext = "";
+    const bottomY = asset.y + asset.height;
+
+    if (bottomY > 85) {
+      depthContext = "FOREGROUND (Tiền cảnh - Yêu cầu chi tiết cao, kích thước lớn nhất)";
+    } else if (bottomY > 50) {
+      depthContext = "MID-GROUND (Trung cảnh - Kích thước trung bình)";
+    } else {
+      depthContext = "BACKGROUND/CEILING (Hậu cảnh hoặc Trần - Kích thước nhỏ theo luật xa gần)";
+    }
+
+    // Xác định tỉ lệ khung hình để gợi ý hình dáng
+    const aspectRatio = asset.width / asset.height;
+    const shapeHint = aspectRatio > 1.5 ? "Horizontal spread (Dàn ngang)" : aspectRatio < 0.6 ? "Vertical tall (Dạng cột cao)" : "Balanced aspect ratio";
+
+    return `
+    --- OBJECT ${index + 1}: "${asset.label}" ---
+    - BOUNDING BOX: x=${Math.round(asset.x)}%, y=${Math.round(asset.y)}%, w=${Math.round(asset.width)}%, h=${Math.round(asset.height)}%
+    - SPATIAL ZONE: ${depthContext}
+    - SHAPE HINT: ${shapeHint}
+    - SCALE REQUIREMENT: Render this object with realistic physical proportions relative to the room height.
+    ${asset.image ? "- VISUAL REFERENCE: Use the provided crop image strictly for style and structure." : ""}
+    `;
+  }).join('\n');
+
+  // Trả về một khối Prompt kỹ thuật (System Instruction)
+  return `
+  \n========== SPATIAL & PERSPECTIVE INSTRUCTIONS (CRITICAL) ==========
+  You are performing 'Perspective-Aware Photobashing'. You MUST place the following objects into the scene with perfect architectural perspective:
+
+  ${assetInstructions}
+
+  STRICT RULES FOR SCALING & PLACEMENT:
+  1. VANISHING POINT: Align all objects to the room's primary vanishing point.
+  2. CONTACT SHADOWS: All objects touching the floor MUST have realistic ambient occlusion and contact shadows to prevent the "floating" effect.
+  3. RELATIVE SCALE: Compare objects to human scale equivalents. (e.g., A flower vase cannot be larger than a chair; A wedding arch must be taller than a person).
+  4. OCCLUSION: Objects in the FOREGROUND must correctly obscure objects in the BACKGROUND.
+  ====================================================================\n
+  `;
+};
+
+/**
  * Analyzes an image with a specific instruction to generate a text prompt/description.
  * Used for auto-detecting event space features.
  */
@@ -195,6 +249,9 @@ export const generateWeddingRender = async (
   // 1. Get Empowerment Prompt
   const empowermentPrompt = getEmpowermentPrompt(options);
 
+  // 1.1 Get Spatial Instructions (if assets provided)
+  const spatialPrompt = options.assets ? generateSpatialInstructions(options.assets) : "";
+
   // STEP 1: PROMPT CONSTRUCTION (MIXED STRATEGY)
   let masterPrompt = "";
 
@@ -224,6 +281,7 @@ export const generateWeddingRender = async (
     LIGHTING: ${WEDDING_MATERIALS_KEYWORDS.lighting}.
     USER DETAILS: ${options.additionalPrompt}.
     ${empowermentPrompt}
+    ${spatialPrompt}
   `;
 
   if (options.hiddenAIContext) {
@@ -680,17 +738,8 @@ export const generateIdeaDecor = async (
 
   if (onStatusUpdate) onStatusUpdate("Đang phân tích và sắp đặt vật thể...");
 
-  // 1. Phân tích Assets (nhanh)
-  // Logic: Tạo danh sách mô tả asset và vị trí
-  const assetInstructions = await Promise.all(assets.map(async (asset, index) => {
-    let desc = asset.label;
-    if (asset.image) {
-       // Simple labeling for the prompt, relying on visual input context mostly
-       desc = `Asset #${index + 1} (${asset.label})`;
-    }
-    // Update logic to include width/height for region mapping
-    return `- Insert ${desc} into the region defined by bounding box: Left:${asset.x.toFixed(0)}%, Top:${asset.y.toFixed(0)}%, Width:${asset.width.toFixed(0)}%, Height:${asset.height.toFixed(0)}%. Scale to fit naturally within this zone.`;
-  }));
+  // Generate enhanced spatial instructions using the helper
+  const spatialInstructions = generateSpatialInstructions(assets);
 
   const decorPrompt = `
     ROLE: Professional Wedding Decorator.
@@ -698,11 +747,11 @@ export const generateIdeaDecor = async (
     
     BACKGROUND: The first image is the architectural base. Keep its lighting and perspective exactly as is.
     
-    ASSETS TO PLACE:
-    ${assetInstructions.join('\n')}
+    SPATIAL & PERSPECTIVE INSTRUCTIONS:
+    ${spatialInstructions}
     
     INSTRUCTIONS:
-    1. Place the assets at the specified regions (using X, Y, Width, Height percentages).
+    1. Place the assets at the specified regions defined in the spatial instructions.
     2. BLENDING: Ensure the inserted objects cast realistic shadows on the floor/walls of the background. Match the color temperature and lighting direction of the background.
     3. SCALE: Scale the objects appropriately for the perspective at that depth and within the defined region.
     4. If an asset image is provided (subsequent inputs), use that exact design. If no image is provided for a label, generate a high-quality object matching the label description.

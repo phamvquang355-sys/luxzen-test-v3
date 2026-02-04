@@ -14,6 +14,17 @@ export interface OptionItem {
   description?: string;
 }
 
+// New Idea Generator Types
+export interface IdeaAsset {
+  id: string;
+  x: number; // Percentage coordinate 0-100 (Top-Left)
+  y: number; // Percentage coordinate 0-100 (Top-Left)
+  width: number; // Percentage width 0-100
+  height: number; // Percentage height 0-100
+  image: FileData | null;
+  label: string;
+}
+
 export interface RenderOptions {
   category: string;
   style: string;
@@ -26,6 +37,7 @@ export interface RenderOptions {
   hiddenAIContext?: string; // New: Hidden AI analysis context
   isAutoFocus: boolean; // New: AI Photography Auto-Focus
   cameraPreset: string; // New: Photography Lens Preset Key
+  assets?: IdeaAsset[]; // New: List of spatial assets
 }
 
 export enum AppState {
@@ -109,17 +121,6 @@ export interface SketchConverterProps {
   userCredits: number;
   onDeductCredits?: (cost: number, description: string) => Promise<void>;
   onReset: () => void;
-}
-
-// New Idea Generator Types
-export interface IdeaAsset {
-  id: string;
-  x: number; // Percentage coordinate 0-100 (Top-Left)
-  y: number; // Percentage coordinate 0-100 (Top-Left)
-  width: number; // Percentage width 0-100
-  height: number; // Percentage height 0-100
-  image: FileData | null;
-  label: string;
 }
 
 export type IdeaStep = 'UPLOAD' | 'STRUCTURE_GENERATED' | 'COMPLETED';
