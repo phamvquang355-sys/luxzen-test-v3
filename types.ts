@@ -21,6 +21,8 @@ export interface IdeaAsset {
   y: number; // Percentage coordinate 0-100 (Top-Left)
   width: number; // Percentage width 0-100
   height: number; // Percentage height 0-100
+  rotation: number; // Degrees 0-360
+  aspectRatio: number; // width / height ratio of the asset image
   image: FileData | null;
   label: string;
 }

@@ -172,10 +172,16 @@ const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
     return `
     --- OBJECT ${index + 1}: "${asset.label}" ---
     - BOUNDING BOX: x=${Math.round(asset.x)}%, y=${Math.round(asset.y)}%, w=${Math.round(asset.width)}%, h=${Math.round(asset.height)}%
+    - ROTATION: ${Math.round(asset.rotation || 0)} degrees (Rotate the object by this amount if relevant).
     - SPATIAL ZONE: ${depthContext}
     - SHAPE HINT: ${shapeHint}
     - SCALE: Maintain scale relative to the fixed composition defined above.
-    ${asset.image ? "- VISUAL REFERENCE: Use the provided crop image strictly for style and structure." : ""}
+    ${asset.image ? `
+    - *** REFERENCE IMAGE PROVIDED ***: 
+      Input #${2 + index} is the reference image for this object. 
+      YOU MUST USE THE EXACT DESIGN, COLOR, AND STYLE OF THIS REFERENCE IMAGE.
+      Do not hallucinate a new object. Composite this reference into the scene with realistic lighting and perspective adjustment.
+    ` : "- VISUAL REFERENCE: None provided, generate based on label."}
     `;
   }).join('\n');
 
@@ -565,12 +571,14 @@ const getSupportedAspectRatio = (width: number, height: number): "1:1" | "3:4" |
 
 /**
  * --- GIAI ĐOẠN 1: Dựng Khung Sườn (Pass 1 - Structure) ---
+ * Updated to support multiple variations
  */
 export const generateIdeaStructure = async (
   sketchImage: FileData,
   referenceStyle: FileData | null,
+  imageCount: number = 1,
   onStatusUpdate?: (status: string) => void
-): Promise<string> => {
+): Promise<string[]> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing.");
   }
@@ -620,25 +628,34 @@ export const generateIdeaStructure = async (
   }
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image', // Using Flash as requested/safe choice
-      contents: { parts: parts },
-      config: {
-        systemInstruction: "You are a specialized 3D Architectural Visualizer. Your goal is to create a realistic 'blank canvas' room based on a sketch."
-      }
-    });
+    const images: string[] = [];
 
-    if (response.candidates && response.candidates.length > 0) {
-      const content = response.candidates[0].content;
-      if (content && content.parts) {
-        for (const part of content.parts) {
-          if (part.inlineData && part.inlineData.data) {
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-          }
+    // Loop to generate multiple variations if needed
+    for (let i = 0; i < imageCount; i++) {
+        if (onStatusUpdate && imageCount > 1) onStatusUpdate(`Đang tạo khung sườn ${i + 1}/${imageCount}...`);
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image', 
+            contents: { parts: parts },
+            config: {
+                systemInstruction: "You are a specialized 3D Architectural Visualizer. Your goal is to create a realistic 'blank canvas' room based on a sketch."
+            }
+        });
+
+        if (response.candidates && response.candidates.length > 0) {
+            const content = response.candidates[0].content;
+            if (content && content.parts) {
+                for (const part of content.parts) {
+                    if (part.inlineData && part.inlineData.data) {
+                        images.push(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`);
+                    }
+                }
+            }
         }
-      }
     }
-    throw new Error("No structure image generated.");
+
+    if (images.length === 0) throw new Error("No structure image generated.");
+    return images;
   } catch (error) {
     console.error("Gemini Idea Structure Error:", error);
     throw error;
@@ -672,7 +689,7 @@ export const generateIdeaDecor = async (
 
   if (isStrictBackgroundPreservation) {
     // === STRICT DECOR ONLY MODE ===
-    modelName = 'gemini-2.0-flash-exp'; // Use exp model for better adherence as requested
+    modelName = 'gemini-3-pro-image-preview'; // High quality for blending
     decorPrompt = `
       ${DECOR_PLACEMENT_ONLY_PROMPT}
       ${spatialInstructions}
@@ -752,89 +769,6 @@ export const generateIdeaDecor = async (
 
   } catch (error) {
     console.error("Gemini Idea Decor Error:", error);
-    throw error;
-  }
-};
-
-/**
- * TÍNH NĂNG MỚI: Quy trình tạo ý tưởng liền mạch (One-Pass)
- * Updated to support Step 2 (Decor only) via backgroundOverride.
- */
-export const generateSeamlessIdea = async (
-  sketchImageBase64: string,
-  sketchImageMimeType: string,
-  styleImage: FileData | null,
-  styleDescription: string,
-  assets: IdeaAsset[],
-  imageCount: number = 1, 
-  onStatusUpdate?: (status: string) => void,
-  backgroundOverride?: FileData // NEW PARAMETER: If exists, skip step 1
-): Promise<{ structure: string; final: string[] }> => {
-  try {
-    let structureImage = "";
-
-    if (backgroundOverride) {
-        // === LOGIC BƯỚC 2: GHÉP ĐỒ (Decor Only) ===
-        if (onStatusUpdate) onStatusUpdate("Step 2: Decor Insertion Mode (Locking Background)...");
-        console.log("Step 2: Decor Insertion Mode (Locking Background)...");
-        
-        // Use the overridden background as the structure
-        structureImage = `data:${backgroundOverride.mimeType};base64,${backgroundOverride.base64}`;
-
-        const finalImages = await generateIdeaDecor(
-            backgroundOverride.base64,
-            backgroundOverride.mimeType,
-            assets,
-            imageCount,
-            onStatusUpdate,
-            true // Enable Strict Background Preservation
-        );
-        return { structure: structureImage, final: finalImages };
-
-    } else {
-        // === LOGIC BƯỚC 1: FULL FLOW (Structure -> Decor) ===
-        // BƯỚC 1a (Chạy ngầm): Tạo khung sườn kiến trúc từ Sketch
-        if (onStatusUpdate) onStatusUpdate("Step 1: Generating Structure internally...");
-        console.log("Step 1: Generating Structure internally...");
-        
-        // Construct FileData for internal usage
-        const sketchFileData: FileData = {
-            base64: sketchImageBase64,
-            mimeType: sketchImageMimeType
-        };
-
-        // Gọi lại hàm tạo structure có sẵn
-        structureImage = await generateIdeaStructure(
-          sketchFileData,
-          styleImage, 
-          onStatusUpdate
-        );
-
-        // Helper to extract base64/mime from data URI
-        const splitDataURI = (uri: string) => {
-            const parts = uri.split(';base64,');
-            return { mimeType: parts[0].replace('data:', ''), base64: parts[1] };
-        };
-        const structureData = splitDataURI(structureImage);
-
-        // BƯỚC 1b: Ghép Decor vào khung sườn vừa tạo
-        if (onStatusUpdate) onStatusUpdate("Step 2: Applying Decor based on Sketch pins...");
-        console.log("Step 2: Applying Decor based on Sketch pins...");
-        
-        // Gọi hàm tạo ảnh cuối cùng (Normal mode)
-        const finalImages = await generateIdeaDecor(
-            structureData.base64,
-            structureData.mimeType,
-            assets,
-            imageCount, 
-            onStatusUpdate,
-            false // Normal mode
-        );
-
-        return { structure: structureImage, final: finalImages };
-    }
-  } catch (error) {
-    console.error("Seamless generation failed:", error);
     throw error;
   }
 };
