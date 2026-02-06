@@ -57,7 +57,8 @@ export const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage,
         className="absolute inset-0 w-full h-full object-contain pointer-events-none"
       />
       
-      <div className="absolute top-6 right-6 bg-black/40 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] z-10 border border-white/10">
+      {/* Label: text-xs (12px) font-normal */}
+      <div className="absolute top-6 right-6 bg-black/40 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-xs font-normal uppercase tracking-[0.2em] z-10 border border-white/10">
         RENDER 3D
       </div>
 
@@ -72,8 +73,9 @@ export const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage,
         }}
       />
       
+      {/* Label: text-xs (12px) font-normal */}
       <div 
-        className="absolute top-6 left-6 bg-white/90 backdrop-blur-md text-zinc-900 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] z-10 shadow-lg"
+        className="absolute top-6 left-6 bg-white/90 backdrop-blur-md text-zinc-900 px-4 py-1.5 rounded-full text-xs font-normal uppercase tracking-[0.2em] z-10 shadow-lg"
         style={{ opacity: sliderPosition > 10 ? 1 : 0 }} // Ẩn nhãn nếu thanh trượt quá gần lề
       >
         PHÁC THẢO
@@ -94,10 +96,10 @@ export const ImageComparator: React.FC<ImageComparatorProps> = ({ originalImage,
            </div>
            
            {/* Mũi tên chỉ hướng */}
-           <div className="absolute -left-6 text-white text-xs font-bold drop-shadow-md animate-pulse">
+           <div className="absolute -left-6 text-white text-xs font-normal drop-shadow-md animate-pulse">
               ◀
            </div>
-           <div className="absolute -right-6 text-white text-xs font-bold drop-shadow-md animate-pulse">
+           <div className="absolute -right-6 text-white text-xs font-normal drop-shadow-md animate-pulse">
               ▶
            </div>
         </div>

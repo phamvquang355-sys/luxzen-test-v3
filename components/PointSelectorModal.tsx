@@ -149,7 +149,7 @@ export const PointSelectorModal: React.FC<PointSelectorModalProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
                 <div className="p-4 border-b border-luxury-100 flex items-center justify-between bg-white z-20">
-                    <h3 className="text-xl font-serif font-bold text-luxury-900">Chọn Vị Trí Thay Thế (Zoom: {Math.round(scale * 100)}%)</h3>
+                    <h3 className="text-xl font-serif font-normal text-luxury-900">Chọn Vị Trí Thay Thế (Zoom: {Math.round(scale * 100)}%)</h3>
                     <button onClick={onClose} className="text-luxury-600 hover:text-luxury-900"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
                 </div>
 
@@ -211,14 +211,14 @@ export const PointSelectorModal: React.FC<PointSelectorModalProps> = ({
                         <button
                             onClick={handleFindSimilar}
                             disabled={isDetecting || userCredits < DETECTION_COST}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-6 py-2 bg-purple-600 text-white rounded-lg font-normal hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             {isDetecting ? <Spinner /> : 'Tìm Vật Thể Tương Tự'}
                             {detectedPoints.length > 0 && ` (${detectedPoints.length})`}
                         </button>
                     )}
-                    <button onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-bold">Hủy</button>
-                    <button onClick={handleConfirm} disabled={!selectedPoint} className="px-10 py-2 bg-accent-600 text-white rounded-lg font-bold disabled:opacity-50">Xác Nhận</button>
+                    <button onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-normal">Hủy</button>
+                    <button onClick={handleConfirm} disabled={!selectedPoint} className="px-10 py-2 bg-accent-600 text-white rounded-lg font-normal disabled:opacity-50">Xác Nhận</button>
                 </div>
             </div>
         </div>

@@ -92,20 +92,20 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
           {isAnalyzing && (
             <div className="absolute inset-0 bg-[#0C151A]/90 backdrop-blur-sm flex flex-col items-center justify-center text-theme-gold z-20">
               <Spinner />
-              <p className="mt-4 text-xs font-bold tracking-[0.2em] animate-pulse text-theme-gold drop-shadow-md">AI ĐANG PHÂN TÍCH...</p>
+              <p className="mt-4 text-xs font-normal tracking-[0.2em] animate-pulse text-theme-gold drop-shadow-md">AI ĐANG PHÂN TÍCH...</p>
             </div>
           )}
 
           {!isAnalyzing && (
             <div className="absolute top-4 right-4 z-10">
-              <div className="bg-theme-base/90 backdrop-blur px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-[11px] font-bold text-theme-gold border border-theme-gold/20 uppercase tracking-wider">
+              <div className="bg-theme-base/90 backdrop-blur px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-[11px] font-normal text-theme-gold border border-theme-gold/20 uppercase tracking-wider">
                 <SparklesIcon /> Analyzed
               </div>
             </div>
           )}
 
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-            <p className="text-theme-base bg-theme-gold px-4 py-2 rounded-full text-sm font-bold shadow-lg transform scale-95 group-hover:scale-100 transition-transform">Thay đổi ảnh</p>
+            <p className="text-theme-base bg-theme-gold px-4 py-2 rounded-full text-sm font-normal shadow-lg transform scale-95 group-hover:scale-100 transition-transform">Thay đổi ảnh</p>
           </div>
         </div>
       ) : (
@@ -115,7 +115,7 @@ export const RenderImageUpload: React.FC<RenderImageUploadProps> = ({
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                </svg>
             </div>
-            <p className="font-bold text-theme-text-main text-sm uppercase tracking-wide">Tải ảnh sảnh tiệc / Mặt bằng</p>
+            <p className="font-normal text-theme-text-main text-sm uppercase tracking-wide">Tải ảnh sảnh tiệc / Mặt bằng</p>
             <p className="text-[11px] mt-1 text-theme-text-sub opacity-80">Kéo thả hoặc nhấn để chọn</p>
         </div>
       )}

@@ -57,8 +57,8 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-8 bg-theme-surface rounded-2xl shadow-2xl border border-theme-gold/10">
-            {/* Heading H2 -> text-lg */}
-            <h2 className="text-lg font-bold text-theme-text-main mb-4 border-b border-theme-gold/10 pb-4">
+            {/* Heading H2 -> text-lg font-normal */}
+            <h2 className="text-lg font-normal text-theme-text-main mb-4 border-b border-theme-gold/10 pb-4">
                 Nâng Cấp Hình Ảnh AI
             </h2>
 
@@ -73,7 +73,7 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
                     />
                     
                     <div className="space-y-4">
-                        <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
+                        <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest">
                           Độ phân giải đầu ra
                         </label>
                         <ResolutionSelector value={resolution} onChange={(val) => onStateChange({ resolution: val })} />
@@ -87,7 +87,7 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
                     <button 
                         onClick={handleUpscale}
                         disabled={isLoading || !sourceImage}
-                        className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
+                        className={`w-full py-4 px-6 rounded-xl font-normal text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
                             ${isLoading || !sourceImage 
                                 ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' 
                                 : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
@@ -113,14 +113,14 @@ const Upscale: React.FC<UpscaleProps> = ({ state, onStateChange, userCredits = 0
                                 <a 
                                     href={upscaledImages[0]} 
                                     download={`upscaled-image-${resolution}.png`}
-                                    className="px-8 py-2.5 bg-theme-gold text-theme-base rounded-full text-sm font-bold hover:bg-white transition-colors shadow-lg flex items-center gap-2"
+                                    className="px-8 py-2.5 bg-theme-gold text-theme-base rounded-full text-sm font-normal hover:bg-white transition-colors shadow-lg flex items-center gap-2"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                     Tải Ảnh
                                 </a>
                                 <button 
                                     onClick={onReset}
-                                    className="px-6 py-2.5 bg-theme-surface text-theme-gold border border-theme-gold/30 rounded-full text-sm font-bold hover:bg-theme-gold hover:text-theme-base transition-colors"
+                                    className="px-6 py-2.5 bg-theme-surface text-theme-gold border border-theme-gold/30 rounded-full text-sm font-normal hover:bg-theme-gold hover:text-theme-base transition-colors"
                                 >
                                     Làm Mới
                                 </button>

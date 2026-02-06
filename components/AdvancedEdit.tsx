@@ -115,20 +115,21 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-8 bg-theme-surface rounded-2xl shadow-2xl border border-theme-gold/10">
-            {/* H2 -> text-lg */}
-            <h2 className="text-lg font-bold text-theme-text-main mb-4 border-b border-theme-gold/10 pb-4">
+            {/* H2 Panel Title: text-lg font-normal */}
+            <h2 className="text-lg font-normal text-theme-text-main mb-4 border-b border-theme-gold/10 pb-4">
                 Chỉnh Sửa Nâng Cao AI
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* PANEL ĐIỀU KHIỂN */}
                 <div className="lg:col-span-4 space-y-6 bg-theme-base p-6 rounded-2xl shadow-xl border border-theme-gold/10">
-                    {/* H3 -> text-base */}
-                    <h3 className="text-base font-bold text-theme-text-main mb-4 uppercase tracking-wider">Đầu Vào & Cài Đặt</h3>
+                    {/* H3 Section Title: text-base font-normal */}
+                    <h3 className="text-base font-normal text-theme-text-main mb-4 uppercase tracking-wider">Đầu Vào & Cài Đặt</h3>
 
                     {/* 1. Tải ảnh gốc */}
                     <div className="space-y-2">
-                        <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
+                        {/* Label: text-xs font-normal */}
+                        <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest">
                             1. Tải Ảnh Gốc (Cảnh Chính)
                         </label>
                         <ImageUpload 
@@ -136,24 +137,26 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                             previewUrl={sourceImage?.objectURL || null}
                             maxWidth={1280} 
                             quality={0.9}
+                            compact
                         />
                     </div>
                     
                     {sourceImage && (
                         <div className="mt-6 space-y-4">
-                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
+                            <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest">
                                 2. Chọn Kiểu Chỉnh Sửa
                             </label>
                             <div className="flex gap-2 p-1 bg-theme-surface rounded-xl border border-theme-gold/10">
+                                {/* Button Toggle: Compact padding py-2 font-normal */}
                                 <button 
                                     onClick={() => handleSetEditMode('NOTE')}
-                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'NOTE' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-text-sub hover:text-theme-text-main'}`}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-normal transition-all ${editMode === 'NOTE' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-text-sub hover:text-theme-text-main'}`}
                                 >
                                     VẼ GHI CHÚ ✍️
                                 </button>
                                 <button 
                                     onClick={() => handleSetEditMode('SWAP')}
-                                    className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${editMode === 'SWAP' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-text-sub hover:text-theme-text-main'}`}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-normal transition-all ${editMode === 'SWAP' ? 'bg-theme-gold text-theme-base shadow-lg' : 'bg-transparent text-theme-text-sub hover:text-theme-text-main'}`}
                                 >
                                     THAY THẾ VẬT THỂ 🪑
                                 </button>
@@ -163,14 +166,15 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
 
                     {editMode === 'NOTE' && sourceImage && (
                         <div className="mt-6 animate-in fade-in slide-in-from-top-4 space-y-4">
-                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
+                            <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest">
                                 3. Ghi chú trực quan & Văn bản
                             </label>
                             
                             {!annotatedBase64 && !isAnnotating && (
                                 <button
                                     onClick={handleStartAnnotation}
-                                    className="w-full py-3 bg-theme-surface2 border border-theme-gold text-theme-gold rounded-xl font-bold hover:bg-theme-gold hover:text-theme-base transition-colors shadow-lg"
+                                    /* Primary Action: text-sm, py-2.5 font-normal */
+                                    className="w-full py-2.5 bg-theme-surface2 border border-theme-gold text-theme-gold rounded-xl text-sm font-normal hover:bg-theme-gold hover:text-theme-base transition-colors shadow-lg"
                                 >
                                     BẮT ĐẦU CHÚ THÍCH
                                 </button>
@@ -179,20 +183,20 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                             {(annotatedBase64 || isAnnotating) && (
                                 <button
                                     onClick={handleStartAnnotation}
-                                    className={`w-full py-3 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 ${annotatedBase64 ? 'bg-green-700/80 text-white border border-green-500' : 'bg-blue-600 text-white'}`}
+                                    className={`w-full py-2.5 rounded-xl text-sm font-normal transition-all shadow-md flex items-center justify-center gap-2 ${annotatedBase64 ? 'bg-green-700/80 text-white border border-green-500' : 'bg-blue-600 text-white'}`}
                                 >
                                     {annotatedBase64 ? '✅ ĐÃ VẼ GHI CHÚ' : '✍️ ĐANG VẼ...'}
                                 </button>
                             )}
 
-                             {/* Textarea for additional prompts */}
+                             {/* Textarea: text-sm font-normal */}
                             <div className="space-y-2 mt-4">
-                                <label className="text-[10px] font-bold text-theme-text-sub uppercase tracking-widest">Mô tả chi tiết yêu cầu</label>
+                                <label className="text-[10px] font-normal text-theme-text-sub uppercase tracking-widest">Mô tả chi tiết yêu cầu</label>
                                 <textarea
                                     value={additionalPrompt || ''}
                                     onChange={(e) => onStateChange({ additionalPrompt: e.target.value })}
                                     placeholder="Ví dụ: Thay bình hoa cũ bằng bình hoa pha lê, thêm ánh sáng vàng ấm..."
-                                    className="w-full p-3 bg-theme-surface border border-theme-gold/20 rounded-xl focus:ring-1 focus:ring-theme-gold outline-none text-theme-text-main placeholder-theme-text-sub/50 text-sm h-32 resize-none"
+                                    className="w-full p-3 bg-theme-surface border border-theme-gold/20 rounded-xl focus:ring-1 focus:ring-theme-gold outline-none text-theme-text-main placeholder-theme-text-sub/50 text-sm h-24 resize-none"
                                 />
                             </div>
                         </div>
@@ -200,7 +204,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     
                     {editMode === 'SWAP' && sourceImage && (
                         <div className="mt-6 animate-in fade-in slide-in-from-top-4 space-y-4">
-                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
+                            <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest">
                                 3. Tải Mẫu Vật Thể Mới
                             </label>
                             <ImageUpload 
@@ -208,14 +212,15 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                                 previewUrl={refObject?.objectURL || null}
                                 maxWidth={512} 
                                 quality={0.8}
+                                compact
                             />
                             
-                            <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest mt-4">
+                            <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest mt-4">
                                 4. Chọn Vị Trí Thay Thế Trên Ảnh Gốc
                             </label>
                             <button
                                 onClick={() => setIsPointSelectionModalOpen(true)}
-                                className="w-full py-3 bg-theme-surface2 text-theme-gold border border-theme-gold/50 rounded-xl font-bold hover:bg-theme-gold hover:text-theme-base transition-colors shadow-md"
+                                className="w-full py-2.5 bg-theme-surface2 text-theme-gold border border-theme-gold/50 rounded-xl text-sm font-normal hover:bg-theme-gold hover:text-theme-base transition-colors shadow-md"
                                 disabled={isLoading}
                             >
                                 {clickPoint ? "Thay Đổi Vị Trí Đã Chọn" : "Chọn Vị Trí Thay Thế"}
@@ -234,10 +239,11 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                         <span className="text-sm text-theme-text-sub">Số dư: {userCredits}</span>
                     </div>
 
+                    {/* MAIN GENERATE BUTTON: Primary (text-sm, py-3, font-normal) */}
                     <button 
                         onClick={handleGenerate}
                         disabled={isLoading || !sourceImage || (editMode === 'NOTE' && !annotatedBase64) || (editMode === 'SWAP' && (!refObject || !clickPoint))}
-                        className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
+                        className={`w-full py-3 px-6 rounded-xl font-normal text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1 text-sm
                             ${isLoading || !sourceImage || (editMode === 'NOTE' && !annotatedBase64) || (editMode === 'SWAP' && (!refObject || !clickPoint))
                                 ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' 
                                 : 'bg-theme-gold hover:bg-white hover:shadow-theme-gold/40'
@@ -249,18 +255,19 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                     {error && <p className="text-red-400 text-xs text-center mt-2">{error}</p>}
                     
                     {resultImage && (
-                        <div className="flex justify-center gap-4 py-2 mt-4">
+                        <div className="flex justify-center gap-3 py-2 mt-4">
+                            {/* Secondary Buttons: text-xs, py-2, font-normal */}
                             <a 
                                 href={resultImage} 
                                 download="ai-edited-image.png"
-                                className="px-6 py-2 bg-theme-gold text-theme-base rounded-full text-sm font-bold hover:bg-white transition-colors shadow-md flex items-center gap-2"
+                                className="px-5 py-2 bg-theme-gold text-theme-base rounded-full text-xs font-normal hover:bg-white transition-colors shadow-md flex items-center gap-2"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 Tải Ảnh
                             </a>
                             <button 
                                 onClick={resetCurrentTab}
-                                className="px-6 py-2 bg-theme-surface2 text-theme-gold border border-theme-gold/20 rounded-full text-sm font-bold hover:bg-theme-gold hover:text-theme-base transition-colors"
+                                className="px-5 py-2 bg-theme-surface2 text-theme-gold border border-theme-gold/20 rounded-full text-xs font-normal hover:bg-theme-gold hover:text-theme-base transition-colors"
                             >
                                 Làm Mới
                             </button>
@@ -321,7 +328,7 @@ const AdvancedEdit: React.FC<AdvancedEditProps> = ({ state, onStateChange, userC
                                 <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold/20 rounded-full animate-ping opacity-50"></div>
                                 <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold rounded-full animate-spin border-t-transparent"></div>
                             </div>
-                            <h3 className="mt-8 text-xl font-bold text-theme-gold tracking-widest">AI ĐANG CHỈNH SỬA...</h3>
+                            <h3 className="mt-8 text-xl font-normal text-theme-gold tracking-widest">AI ĐANG CHỈNH SỬA...</h3>
                             <p className="text-theme-text-sub mt-2 text-sm">Đang áp dụng các thay đổi được đánh dấu.</p>
                         </div>
                     )}

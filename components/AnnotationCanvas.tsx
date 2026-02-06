@@ -96,7 +96,8 @@ export const AnnotationCanvas: React.FC<Props> = ({
     if (ctx) {
       // FIX: Cỡ chữ tỉ lệ thuận với độ phân giải ảnh (khoảng 3% chiều rộng)
       const dynamicFontSize = Math.max(30, Math.floor(canvasRef.current!.width * 0.03));
-      ctx.font = `bold ${dynamicFontSize}px Arial`;
+      // Remove 'bold' from font definition
+      ctx.font = `${dynamicFontSize}px Arial`;
       ctx.fillStyle = "#FF0000";
       ctx.strokeStyle = "white";
       ctx.lineWidth = Math.max(2, dynamicFontSize / 10);
@@ -207,16 +208,21 @@ export const AnnotationCanvas: React.FC<Props> = ({
           <button 
             key={tool}
             onClick={() => { setCurrentTool(tool); setTextInput(null); }}
-            className={`px-4 py-2 rounded-xl font-bold transition-all ${currentTool === tool ? 'bg-red-600 text-white shadow-lg shadow-red-900/20' : 'text-zinc-400 hover:bg-white/5'}`}
+            /* Toolbar Button: text-xs, Compact padding, font-normal */
+            className={`px-3 py-1.5 rounded-xl text-xs font-normal transition-all ${currentTool === tool ? 'bg-red-600 text-white shadow-lg shadow-red-900/20' : 'text-zinc-400 hover:bg-white/5'}`}
           >
             {tool === 'brush' ? '✏️ Nét vẽ' : tool === 'arrow' ? '↗️ Mũi tên' : '💬 Chữ'}
           </button>
         ))}
         <div className="w-[1px] bg-white/10 mx-2" />
-        <button onClick={onCancel} className="px-4 py-2 text-white/50 hover:text-white">Hủy</button>
+        
+        {/* Secondary: text-xs */}
+        <button onClick={onCancel} className="px-3 py-1.5 text-xs text-white/50 hover:text-white">Hủy</button>
+        
+        {/* Primary Small: text-sm, py-1.5, font-normal */}
         <button 
           onClick={() => { if (textInput) handleTextSubmit(); onSave(canvasRef.current?.toDataURL('image/jpeg', 0.9).split(',')[1] || '') }}
-          className="px-6 py-2 bg-white text-black rounded-xl font-bold hover:bg-zinc-200"
+          className="px-4 py-1.5 bg-white text-black rounded-xl text-sm font-normal hover:bg-zinc-200"
         >
           Lưu & Gửi AI
         </button>
@@ -240,7 +246,8 @@ export const AnnotationCanvas: React.FC<Props> = ({
                 position: 'absolute',
                 left: textInput.x,
                 top: textInput.y,
-                font: `bold ${Math.max(30, Math.floor((canvasRef.current?.width || 0) * 0.03))}px Arial`,
+                // Remove bold
+                font: `${Math.max(30, Math.floor((canvasRef.current?.width || 0) * 0.03))}px Arial`,
                 color: '#FF0000',
                 textShadow: '0 0 4px white, 0 0 4px white',
                 background: 'transparent',

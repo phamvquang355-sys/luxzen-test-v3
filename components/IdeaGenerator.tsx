@@ -244,7 +244,7 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
       {isProcessing && (
         <div className="w-full bg-theme-surface2 text-theme-gold p-4 rounded-xl flex items-center justify-center animate-pulse border border-theme-gold/20">
           <Spinner />
-          <span className="font-bold ml-2 tracking-wide uppercase text-sm">{processStatus}</span>
+          <span className="font-normal ml-2 tracking-wide uppercase text-sm">{processStatus}</span>
         </div>
       )}
 
@@ -252,8 +252,8 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         {/* LEFT COLUMN */}
         <div className="w-full lg:w-[30%] flex flex-col gap-4 h-full min-w-[300px] overflow-hidden">
             <div className="bg-theme-surface p-4 rounded-2xl shadow-xl border border-theme-gold/10">
-                {/* H3 -> text-base */}
-                <h3 className="text-base font-bold text-theme-text-main mb-3 uppercase tracking-widest flex items-center">
+                {/* H3 -> text-base font-normal */}
+                <h3 className="text-base font-normal text-theme-text-main mb-3 uppercase tracking-widest flex items-center">
                   <span className="bg-theme-gold text-theme-base w-5 h-5 rounded flex items-center justify-center text-xs mr-2">1</span>
                   Style Tổng Thể
                 </h3>
@@ -264,10 +264,10 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
 
             <div className="flex-1 flex flex-col bg-theme-surface rounded-2xl shadow-xl border border-theme-gold/10 overflow-hidden">
                 <div className="p-3 border-b border-theme-gold/10 bg-theme-surface2 flex justify-between items-center">
-                    {/* H3 -> text-base (scaled down slightly for list header) or keep text-xs? Prompt says H3 for sidebar section headers. This is a section header inside a panel. Let's use text-xs or text-sm for list header */}
-                    <h3 className="text-xs font-bold text-theme-text-main uppercase tracking-widest">Danh sách Decor ({assets.length})</h3>
-                    {/* Micro -> text-[11px] */}
-                    <span className="text-[11px] text-theme-text-sub">Khoanh vùng ở bên phải ➔</span>
+                    {/* H3 -> text-base (scaled down slightly for list header) or keep text-xs? Prompt says H3 for sidebar section headers. This is a section header inside a panel. Let's use text-xs or text-sm for list header, font-normal */}
+                    <h3 className="text-xs font-normal text-theme-text-main uppercase tracking-widest">Danh sách Decor ({assets.length})</h3>
+                    {/* Micro -> text-[11px] font-normal */}
+                    <span className="text-[11px] text-theme-text-sub font-normal">Khoanh vùng ở bên phải ➔</span>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-3">
                     {assets.length === 0 ? (
@@ -279,7 +279,7 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                     assets.map((asset, idx) => (
                         <div key={asset.id} className="flex gap-2 p-2 bg-theme-base rounded-lg border border-theme-gold/10 shadow-sm group hover:border-theme-gold/50 transition-colors">
                             <div className="flex flex-col items-center gap-1">
-                                <span className="bg-theme-gold text-theme-base w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold">#{idx + 1}</span>
+                                <span className="bg-theme-gold text-theme-base w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-normal">#{idx + 1}</span>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <input 
@@ -289,7 +289,7 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                                         const newAssets = assets.map(a => a.id === asset.id ? { ...a, label: e.target.value } : a);
                                         setAssets(newAssets);
                                     }}
-                                    className="font-bold text-xs text-theme-text-main bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder-theme-text-sub/50"
+                                    className="font-normal text-xs text-theme-text-main bg-transparent border-none focus:ring-0 p-0 w-full truncate placeholder-theme-text-sub/50"
                                     placeholder="Tên vật thể..."
                                 />
                                 <p className="text-[11px] text-theme-text-sub mt-0.5">Vùng: {Math.round(asset.width)}% x {Math.round(asset.height)}%</p>
@@ -311,14 +311,14 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
 
             <div className="bg-theme-surface p-4 rounded-2xl shadow-xl border border-theme-gold/10 space-y-4">
                 <div>
-                    <label className="block text-xs font-bold text-theme-text-sub mb-2 uppercase tracking-widest">Số lượng phương án</label>
+                    <label className="block text-xs font-normal text-theme-text-sub mb-2 uppercase tracking-widest">Số lượng phương án</label>
                     <div className="flex bg-theme-base rounded-xl p-1 border border-theme-gold/10">
                         {[1, 2, 3, 4].map(num => (
-                            <button key={num} onClick={() => setNumberOfImages(num)} className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${numberOfImages === num ? 'bg-theme-gold text-theme-base shadow-lg' : 'text-theme-text-sub hover:text-theme-gold'}`}>{num}</button>
+                            <button key={num} onClick={() => setNumberOfImages(num)} className={`flex-1 py-2 text-sm font-normal rounded-lg transition-all ${numberOfImages === num ? 'bg-theme-gold text-theme-base shadow-lg' : 'text-theme-text-sub hover:text-theme-gold'}`}>{num}</button>
                         ))}
                     </div>
                 </div>
-                <button onClick={handleGenerateOnePass} disabled={!sketchImage || isProcessing} className={`w-full py-4 text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${!sketchImage || isProcessing ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' : 'bg-theme-gold text-theme-base hover:bg-white hover:shadow-theme-gold/40'}`}>{isProcessing ? <Spinner /> : <WandIcon />} 
+                <button onClick={handleGenerateOnePass} disabled={!sketchImage || isProcessing} className={`w-full py-4 text-sm font-normal rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${!sketchImage || isProcessing ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' : 'bg-theme-gold text-theme-base hover:bg-white hover:shadow-theme-gold/40'}`}>{isProcessing ? <Spinner /> : <WandIcon />} 
                     {result && result.final.length > 0 ? "GHÉP ĐỒ (BƯỚC 2)" : "TẠO Ý TƯỞNG"}
                 </button>
             </div>
@@ -327,7 +327,7 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         {/* RIGHT COLUMN: SKETCH CANVAS */}
         <div className="w-full lg:w-[70%] h-full flex flex-col">
              <div className="bg-theme-surface p-4 rounded-2xl shadow-xl border border-theme-gold/10 h-full flex flex-col relative group">
-                <h3 className="text-base font-bold text-theme-text-main mb-3 uppercase tracking-widest flex items-center justify-between">
+                <h3 className="text-base font-normal text-theme-text-main mb-3 uppercase tracking-widest flex items-center justify-between">
                     <span className="flex items-center">
                         <span className="bg-theme-gold text-theme-base w-5 h-5 rounded flex items-center justify-center text-xs mr-2">2</span>
                         Phác thảo & Khoanh vùng
@@ -386,7 +386,7 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                                         style={{ left: leftPx, top: topPx, width: widthPx, height: heightPx }}
                                         onClick={(e) => e.stopPropagation()} 
                                     >
-                                        <span className="bg-theme-gold text-theme-base text-[10px] font-bold px-1.5 rounded-br shadow-sm">#{idx + 1}</span>
+                                        <span className="bg-theme-gold text-theme-base text-[10px] font-normal px-1.5 rounded-br shadow-sm">#{idx + 1}</span>
                                         <div className="absolute top-0 right-0 -mt-2 -mr-2 opacity-0 group-hover/pin:opacity-100 transition-opacity">
                                             <button onClick={(e) => { e.stopPropagation(); handleRemoveAsset(asset.id); }} className="bg-red-500 text-white rounded-full p-1 shadow-sm hover:scale-110"><TrashIcon /></button>
                                         </div>
@@ -408,8 +408,8 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
       {result && (
         <div className="w-full bg-theme-surface p-6 rounded-2xl shadow-2xl border border-theme-gold/10 animate-in fade-in slide-in-from-bottom-8 duration-500 mb-8">
              <div className="flex justify-between items-center mb-6 border-b border-theme-gold/10 pb-4">
-                {/* Result Title -> text-lg */}
-                <h3 className="text-lg font-bold text-theme-gold flex items-center gap-2">✨ Kết quả Ý Tưởng ({result.final.length})</h3>
+                {/* Result Title -> text-lg font-normal */}
+                <h3 className="text-lg font-normal text-theme-gold flex items-center gap-2">✨ Kết quả Ý Tưởng ({result.final.length})</h3>
                 <div className="flex gap-2">
                      <button onClick={() => setShowDebugStructure(!showDebugStructure)} className={`text-sm px-4 py-2 rounded-lg border transition-colors flex items-center gap-2 ${showDebugStructure ? 'bg-theme-gold text-theme-base border-theme-gold' : 'text-theme-gold border-theme-gold/30 hover:bg-theme-base'}`}><LayersIcon /> {showDebugStructure ? 'Đang xem Khung Sườn' : 'Xem Khung Sườn'}</button>
                      <button onClick={() => setResult(null)} className="text-sm text-red-400 hover:text-red-300 px-4 py-2 rounded-lg transition-colors">Đóng kết quả</button>
@@ -420,9 +420,9 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                     <div key={idx} className="relative group rounded-xl overflow-hidden shadow-2xl bg-black border border-theme-gold/10">
                         <img src={showDebugStructure ? result.structure : imgSrc} alt={`Option ${idx + 1}`} className="w-full h-auto object-cover" />
                         <div className="absolute inset-0 bg-theme-base/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
-                            <a href={imgSrc} download={`idea-render-${idx+1}.png`} className="px-8 py-3 bg-theme-gold text-theme-base font-bold rounded-full hover:scale-105 transition-transform shadow-lg">Tải xuống</a>
+                            <a href={imgSrc} download={`idea-render-${idx+1}.png`} className="px-8 py-3 bg-theme-gold text-theme-base font-normal rounded-full hover:scale-105 transition-transform shadow-lg">Tải xuống</a>
                         </div>
-                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white text-xs font-bold px-3 py-1 rounded-full border border-white/10">Phương án {idx + 1}</div>
+                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur text-white text-xs font-normal px-3 py-1 rounded-full border border-white/10">Phương án {idx + 1}</div>
                     </div>
                 ))}
             </div>

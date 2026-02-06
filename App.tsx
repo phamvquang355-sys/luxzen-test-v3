@@ -16,6 +16,7 @@ const App: React.FC = () => {
 
   // State for Render tab
   const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
+  const [isPhotoSettingsOpen, setIsPhotoSettingsOpen] = useState<boolean>(false); // New State for Photo Toggle
   const [sourceImage, setSourceImage] = useState<FileData | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -242,84 +243,105 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-theme-base text-theme-text-main font-sans selection:bg-theme-gold selection:text-theme-base">
-      {/* Header */}
-      <header className="bg-theme-base/90 backdrop-blur-md sticky top-0 z-50 border-b border-theme-gold/20 shadow-lg shadow-black/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-theme-gold text-theme-base rounded-full flex items-center justify-center">
-                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      
+      {/* HEADER 1: BRANDING & CREDITS */}
+      <header className="bg-theme-base border-b border-theme-gold/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* LOGO MỚI */}
+            <div className="w-10 h-10 flex items-center justify-center">
+                <svg className="w-10 h-10 drop-shadow-md" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#F5E6D8" />
+                            <stop offset="50%" stopColor="#D9C5B4" />
+                            <stop offset="100%" stopColor="#A69588" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M25 15 H 75 C 90 15 95 25 90 50 V 60" stroke="url(#logoGradient)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M75 85 H 25 C 10 85 5 75 10 50 V 40" stroke="url(#logoGradient)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M35 32 H 65 L 35 68 H 65" stroke="url(#logoGradient)" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-theme-text-main">
+            <h1 className="text-2xl font-normal tracking-tight text-theme-text-main">
               Luxe<span className="font-light opacity-80 text-theme-text-sub">Render</span>
             </h1>
           </div>
-          <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
-            {[
-                { 
-                    id: Tool.RENDER, 
-                    label: 'Render 3D', 
-                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                },
-                { 
-                    id: Tool.IDEA_GENERATOR, 
-                    label: 'Ý Tưởng', 
-                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                },
-                { 
-                    id: Tool.UPSCALE, 
-                    label: 'Nâng Cấp', 
-                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                },
-                { 
-                    id: Tool.ADVANCED_EDIT, 
-                    label: 'Chỉnh Sửa', 
-                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                },
-                { 
-                    id: Tool.SKETCH_CONVERTER, 
-                    label: 'Phác Thảo', 
-                    icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                },
-            ].map(tool => (
-                <button
-                key={tool.id}
-                onClick={() => setActiveTool(tool.id as Tool)}
-                className={`px-4 py-2.5 rounded-full text-sm font-bold transition-all whitespace-nowrap border flex items-center
-                    ${activeTool === tool.id 
-                    ? 'bg-theme-gold text-theme-base border-theme-gold shadow-[0_0_15px_rgba(217,197,180,0.3)]' 
-                    : 'bg-transparent text-theme-text-sub border-transparent hover:bg-theme-surface hover:text-theme-gold hover:border-theme-gold/30'}
-                `}
-                >
-                {tool.icon && <span className="mr-2">{tool.icon}</span>}
-                {tool.label}
-                </button>
-            ))}
-            <div className="h-8 w-[1px] bg-theme-gold/20 mx-2 hidden md:block"></div>
-            <span className="text-sm font-bold text-theme-gold ml-2 whitespace-nowrap bg-theme-surface px-3 py-1.5 rounded-lg border border-theme-gold/10">
+          
+          {/* Credits Display */}
+          <div className="flex items-center">
+             <span className="text-sm font-normal text-theme-gold whitespace-nowrap bg-theme-surface px-4 py-2 rounded-lg border border-theme-gold/20 shadow-sm flex items-center gap-2">
+                <svg className="w-4 h-4 text-theme-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 Credits: {userCredits}
-            </span>
+             </span>
           </div>
         </div>
       </header>
 
+      {/* HEADER 2: NAVIGATION TABS (STICKY) */}
+      <div className="sticky top-0 z-50 bg-theme-base/95 backdrop-blur-md border-b border-theme-gold/20 shadow-lg shadow-black/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center gap-2 overflow-x-auto py-3 scrollbar-hide justify-start md:justify-center">
+                {[
+                    { 
+                        id: Tool.RENDER, 
+                        label: 'Render 3D', 
+                        icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    },
+                    { 
+                        id: Tool.IDEA_GENERATOR, 
+                        label: 'Ý Tưởng', 
+                        icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    },
+                    { 
+                        id: Tool.UPSCALE, 
+                        label: 'Nâng Cấp', 
+                        icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    },
+                    { 
+                        id: Tool.ADVANCED_EDIT, 
+                        label: 'Chỉnh Sửa', 
+                        icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    },
+                    { 
+                        id: Tool.SKETCH_CONVERTER, 
+                        label: 'Phác Thảo', 
+                        icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    },
+                ].map(tool => (
+                    <button
+                    key={tool.id}
+                    onClick={() => setActiveTool(tool.id as Tool)}
+                    className={`px-5 py-2 rounded-full text-sm font-normal transition-all whitespace-nowrap border flex items-center
+                        ${activeTool === tool.id 
+                        ? 'bg-theme-gold text-theme-base border-theme-gold shadow-[0_0_15px_rgba(217,197,180,0.3)]' 
+                        : 'bg-transparent text-theme-text-sub border-transparent hover:bg-theme-surface hover:text-theme-gold hover:border-theme-gold/30'}
+                    `}
+                    >
+                    {tool.icon && <span className="mr-2">{tool.icon}</span>}
+                    {tool.label}
+                    </button>
+                ))}
+            </nav>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {activeTool === Tool.RENDER && (
           <div className="flex flex-col lg:flex-row gap-8 items-start h-full">
             
             {/* LEFT: Controls */}
             <div className="w-full lg:w-1/3 space-y-8 bg-theme-surface p-6 md:p-8 rounded-2xl shadow-2xl border border-theme-gold/10">
               <div>
-                {/* Heading H2 -> text-lg */}
-                <h2 className="text-lg font-bold text-theme-text-main mb-6 border-b border-theme-gold/10 pb-4">Thông Số Thiết Kế</h2>
+                {/* Heading H2 -> text-lg font-normal */}
+                <h2 className="text-lg font-normal text-theme-text-main mb-6 border-b border-theme-gold/10 pb-4">Thông Số Thiết Kế</h2>
                 <div className="space-y-6">
                   
                   {/* 1. Upload */}
                   <div className="space-y-2">
-                      {/* Label -> text-xs */}
-                      <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
+                      {/* Label -> text-xs font-normal */}
+                      <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest">
                         Ảnh Gốc
                       </label>
                       <RenderImageUpload 
@@ -332,10 +354,10 @@ const App: React.FC = () => {
                   {/* TOGGLE: Chế độ Tùy chỉnh */}
                   <div className="flex items-center justify-between bg-theme-base p-3 rounded-xl border border-theme-gold/20">
                       <div className="flex flex-col">
-                          {/* Body Default -> text-sm */}
-                          <span className="text-sm font-bold text-theme-text-main uppercase tracking-wide">Tùy Chỉnh</span>
-                          {/* Micro/Meta -> text-[11px] */}
-                          <span className="text-[11px] text-theme-text-sub">Bật để chọn Hạng mục, Màu sắc, Vật liệu...</span>
+                          {/* Body Default -> text-sm font-normal */}
+                          <span className="text-sm font-normal text-theme-text-main uppercase tracking-wide">Tùy Chỉnh</span>
+                          {/* Micro/Meta -> text-[11px] font-normal */}
+                          <span className="text-[11px] text-theme-text-sub font-normal">Bật để chọn Hạng mục, Màu sắc, Vật liệu...</span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -406,53 +428,66 @@ const App: React.FC = () => {
                       </div>
                   )}
 
-                  {/* --- PHOTOGRAPHY CONTROLS --- */}
-                  <div className="p-4 bg-theme-base rounded-xl border border-theme-gold/20 mt-6">
-                      {/* Heading H3 -> text-base */}
-                      <h3 className="text-base font-bold text-theme-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-theme-gold"></span>
-                          Nâng cấp Nhiếp Ảnh
-                      </h3>
-                      
-                      {/* Toggle AI Auto-Focus */}
-                      <div className="flex items-center justify-between mb-4">
-                          <div>
-                              {/* Body Default -> text-sm */}
-                              <span className="font-bold block text-sm text-theme-text-main">AI Auto-Focus</span>
-                              {/* Micro/Meta -> text-[11px] */}
-                              <small className="text-[11px] text-theme-text-sub">Tự động lấy nét nghệ thuật</small>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                              <input 
-                                  type="checkbox" 
-                                  className="sr-only peer" 
-                                  checked={renderOptions.isAutoFocus}
-                                  onChange={() => handleOptionChange('isAutoFocus', !renderOptions.isAutoFocus)}
-                              />
-                              <div className="w-11 h-6 bg-theme-surface2 border border-theme-gold/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-theme-base after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-theme-gold after:border-theme-base after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-theme-gold/20 peer-checked:border-theme-gold"></div>
-                          </label>
+                  {/* --- PHOTOGRAPHY CONTROLS TOGGLE --- */}
+                  <div className="flex items-center justify-between bg-theme-base p-3 rounded-xl border border-theme-gold/20 mt-6">
+                      <div className="flex flex-col">
+                          <span className="text-sm font-normal text-theme-text-main uppercase tracking-wide">Nâng Cấp Nhiếp Ảnh</span>
+                          <span className="text-[11px] text-theme-text-sub font-normal">Tiêu cự, lấy nét AI & ánh sáng</span>
                       </div>
-
-                      {/* Chọn Style Ống kính */}
-                      <div className="mb-2">
-                          <OptionSelector
-                              label="Chế độ Ống kính"
-                              options={Object.entries(PHOTOGRAPHY_PRESETS).map(([key, val]) => ({
-                                  value: key,
-                                  label: val.label,
-                                  description: val.description
-                              }))}
-                              value={renderOptions.cameraPreset}
-                              onChange={(v) => handleOptionChange('cameraPreset', v)}
-                              variant="grid"
+                      <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                              type="checkbox" 
+                              className="sr-only peer" 
+                              checked={isPhotoSettingsOpen}
+                              onChange={() => setIsPhotoSettingsOpen(!isPhotoSettingsOpen)}
                           />
-                      </div>
+                          <div className="w-11 h-6 bg-theme-surface2 border border-theme-gold/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-theme-base after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-theme-text-sub after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-theme-gold peer-checked:after:bg-theme-base"></div>
+                      </label>
                   </div>
+
+                  {/* --- PHOTOGRAPHY CONTROLS CONTENT --- */}
+                  {isPhotoSettingsOpen && (
+                    <div className="p-4 bg-theme-base rounded-xl border border-theme-gold/20 mt-2 animate-in fade-in slide-in-from-top-2">
+                        {/* Toggle AI Auto-Focus */}
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                {/* Body Default -> text-sm font-normal */}
+                                <span className="font-normal block text-sm text-theme-text-main">AI Auto-Focus</span>
+                                {/* Micro/Meta -> text-[11px] font-normal */}
+                                <small className="text-[11px] text-theme-text-sub font-normal">Tự động lấy nét nghệ thuật</small>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer" 
+                                    checked={renderOptions.isAutoFocus}
+                                    onChange={() => handleOptionChange('isAutoFocus', !renderOptions.isAutoFocus)}
+                                />
+                                <div className="w-11 h-6 bg-theme-surface2 border border-theme-gold/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-theme-base after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-theme-gold after:border-theme-base after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-theme-gold/20 peer-checked:border-theme-gold"></div>
+                            </label>
+                        </div>
+
+                        {/* Chọn Style Ống kính */}
+                        <div className="mb-2">
+                            <OptionSelector
+                                label="Chế độ Ống kính"
+                                options={Object.entries(PHOTOGRAPHY_PRESETS).map(([key, val]) => ({
+                                    value: key,
+                                    label: val.label,
+                                    description: val.description
+                                }))}
+                                value={renderOptions.cameraPreset}
+                                onChange={(v) => handleOptionChange('cameraPreset', v)}
+                                variant="grid"
+                            />
+                        </div>
+                    </div>
+                  )}
 
                   {/* 3. Text Area */}
                   <div className="space-y-2">
-                      {/* Label -> text-xs */}
-                      <label className="block text-xs font-bold text-theme-text-sub uppercase tracking-widest">
+                      {/* Label -> text-xs font-normal */}
+                      <label className="block text-xs font-normal text-theme-text-sub uppercase tracking-widest">
                         Chi Tiết Cụ Thể
                       </label>
                       <textarea 
@@ -464,11 +499,11 @@ const App: React.FC = () => {
                       />
                   </div>
 
-                  {/* 4. Action Button */}
+                  {/* 4. Action Button: Primary (text-sm, py-3, font-normal) */}
                   <button
                     onClick={handleGenerate}
                     disabled={!sourceImage || appState === AppState.GENERATING}
-                    className={`w-full py-4 px-6 rounded-xl font-bold text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1
+                    className={`w-full py-3 px-6 rounded-xl font-normal text-theme-base tracking-widest shadow-lg transition-all transform hover:-translate-y-1 text-sm
                       ${!sourceImage || appState === AppState.GENERATING 
                           ? 'bg-theme-surface2 text-theme-text-sub cursor-not-allowed border border-theme-gold/10' 
                           : 'bg-theme-gold hover:bg-white hover:shadow-[0_0_20px_rgba(217,197,180,0.4)]'
@@ -495,7 +530,7 @@ const App: React.FC = () => {
               {appState === AppState.IDLE && !sourceImage && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-theme-text-sub bg-theme-base/50">
                     <svg className="w-24 h-24 mb-6 opacity-30 text-theme-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <p className="text-xl font-light italic text-theme-text-main">Tuyệt tác của bạn bắt đầu từ đây.</p>
                     <p className="text-sm mt-2 opacity-70">Tải lên một bản phác thảo để bắt đầu tạo render.</p>
@@ -514,7 +549,7 @@ const App: React.FC = () => {
                       <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold/20 rounded-full animate-ping opacity-50"></div>
                       <div className="absolute top-0 left-0 w-full h-full border-4 border-theme-gold rounded-full animate-spin border-t-transparent shadow-[0_0_20px_rgba(217,197,180,0.5)]"></div>
                     </div>
-                    <h3 className="mt-8 text-xl font-bold text-theme-gold tracking-widest">AI ĐANG XỬ LÝ...</h3>
+                    <h3 className="mt-8 text-xl font-normal text-theme-gold tracking-widest">AI ĐANG XỬ LÝ...</h3>
                     <p className="text-theme-text-sub mt-2 text-sm">Đang áp dụng vật liệu, ánh sáng và sắp xếp hoa.</p>
                 </div>
               )}
@@ -531,23 +566,24 @@ const App: React.FC = () => {
                       <a 
                         href={generatedImage} 
                         download="wedding-render-8k.png"
-                        className="px-6 py-2.5 bg-theme-gold text-theme-base rounded-full text-sm font-bold hover:bg-white transition-all shadow-lg flex items-center gap-2 border border-transparent"
+                        /* Secondary Buttons: text-xs, py-2, font-normal */
+                        className="px-5 py-2 bg-theme-gold text-theme-base rounded-full text-xs font-normal hover:bg-white transition-all shadow-lg flex items-center gap-2 border border-transparent"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         Tải Render
                       </a>
                       <button 
                         onClick={handleTransferToUpscale}
-                        className="px-6 py-2.5 bg-theme-surface2 text-theme-gold border border-theme-gold/30 rounded-full text-sm font-bold hover:bg-theme-gold hover:text-theme-base transition-all shadow-lg flex items-center gap-2"
+                        className="px-5 py-2 bg-theme-surface2 text-theme-gold border border-theme-gold/30 rounded-full text-xs font-normal hover:bg-theme-gold hover:text-theme-base transition-all shadow-lg flex items-center gap-2"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101M12 12l-2 2" /></svg>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101M12 12l-2 2" /></svg>
                         Nâng Cấp
                       </button>
                       <button 
                         onClick={handleTransferToAdvancedEdit}
-                        className="px-6 py-2.5 bg-theme-surface2 text-theme-gold border border-theme-gold/30 rounded-full text-sm font-bold hover:bg-theme-gold hover:text-theme-base transition-all shadow-lg flex items-center gap-2"
+                        className="px-5 py-2 bg-theme-surface2 text-theme-gold border border-theme-gold/30 rounded-full text-xs font-normal hover:bg-theme-gold hover:text-theme-base transition-all shadow-lg flex items-center gap-2"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         Chỉnh Sửa
                       </button>
                     </div>
