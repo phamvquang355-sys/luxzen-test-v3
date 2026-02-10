@@ -114,48 +114,71 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
       return () => window.removeEventListener('resize', updateMetrics);
   }, [updateMetrics]);
 
-  // --- ADD NEW DECOR HANDLER ---
+  // --- ADD NEW DECOR HANDLER (SMART SCALING) ---
   const handleAddNewDecorClick = () => {
     hiddenNewDecorInputRef.current?.click();
   };
 
   const handleNewDecorFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        try {
-            const { base64, mimeType, width, height } = await geminiService.resizeAndCompressImage(file, 512, 0.8);
-            const objectURL = URL.createObjectURL(file);
-            const aspectRatio = width / height;
+      const file = e.target.files[0];
+      try {
+        setIsProcessing(true); // Reuse existing loading state
+        // Resize ảnh để tối ưu hiệu năng upload
+        const { base64, mimeType, width, height } = await geminiService.resizeAndCompressImage(file, 512, 0.8);
+        const objectURL = URL.createObjectURL(file);
+        
+        // --- LOGIC MỚI: SMART SCALING ---
+        const assetAspectRatio = width / height;
+        
+        // Fallback dimensions if metrics aren't ready (e.g. 800x600 ratio)
+        const containerW = imageMetrics.width || 800;
+        const containerH = imageMetrics.height || 600;
+        const containerAspectRatio = containerW / containerH;
 
-            // Default placement: Center of image, width ~20%
-            const defaultWidthPercent = 20; 
-            const defaultHeightPercent = imageMetrics.width && imageMetrics.height 
-                ? (imageMetrics.width * (defaultWidthPercent/100) / aspectRatio / imageMetrics.height) * 100
-                : 20; 
+        let targetWidthPercent, targetHeightPercent;
 
-            const newAsset: IdeaAsset = {
-                id: Date.now().toString(),
-                x: 40, 
-                y: 40, 
-                width: defaultWidthPercent,
-                height: defaultHeightPercent,
-                rotation: 0,
-                aspectRatio: aspectRatio,
-                image: { file, objectURL, base64, mimeType, width, height },
-                label: file.name.split('.')[0].substring(0, 15)
-            };
-
-            const newAssets = [...assets, newAsset];
-            setAssets(newAssets);
-            setSelectedAssetId(newAsset.id);
-            onStateChange({ assets: newAssets });
-
-        } catch (error) {
-            console.error("Lỗi thêm decor:", error);
-            alert("Không thể thêm ảnh này.");
-        } finally {
-            if (hiddenNewDecorInputRef.current) hiddenNewDecorInputRef.current.value = '';
+        // Nếu ảnh decor là hình ngang (Landscape) hoặc vuông
+        if (assetAspectRatio >= 1) { 
+            targetWidthPercent = 25; // Chiếm 25% chiều rộng canvas
+            // Tính chiều cao tương ứng để giữ đúng tỉ lệ ảnh
+            targetHeightPercent = (targetWidthPercent * containerAspectRatio) / assetAspectRatio;
+        } 
+        // Nếu ảnh decor là hình dọc (Portrait) - ví dụ: đèn cây, cột
+        else {
+            targetHeightPercent = 35; // Chiếm 35% chiều cao canvas (đủ lớn để nhìn rõ)
+            // Tính chiều rộng tương ứng
+            targetWidthPercent = (targetHeightPercent * assetAspectRatio) / containerAspectRatio;
         }
+
+        // Đặt vật thể vào chính giữa màn hình (Center)
+        const centerX = 50 - (targetWidthPercent / 2);
+        const centerY = 50 - (targetHeightPercent / 2);
+
+        const newAsset: IdeaAsset = {
+          id: Date.now().toString(),
+          x: centerX,
+          y: centerY,
+          width: targetWidthPercent,
+          height: targetHeightPercent,
+          rotation: 0,
+          aspectRatio: assetAspectRatio,
+          image: { file, objectURL, base64, mimeType, width, height },
+          label: file.name.split('.')[0].substring(0, 15) // Lấy tên file làm nhãn
+        };
+
+        const newAssets = [...assets, newAsset];
+        setAssets(newAssets);
+        setSelectedAssetId(newAsset.id);
+        onStateChange({ assets: newAssets });
+      } catch (error) {
+        console.error("Error processing decor file:", error);
+        alert("Không thể xử lý ảnh này.");
+      } finally {
+        setIsProcessing(false);
+        // Reset input value để cho phép chọn lại cùng 1 file nếu cần
+        if (e.target) e.target.value = '';
+      }
     }
   };
 

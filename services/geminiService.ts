@@ -148,64 +148,51 @@ MỤC TIÊU: Tạo ra bản render 8k siêu thực nhưng khi đặt cạnh ản
 const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
   if (!assets || assets.length === 0) return "";
 
-  // Mapping từng vật thể thành văn bản mô tả kỹ thuật
   const assetInstructions = assets.map((asset, index) => {
-    // Logic xác định độ sâu dựa trên trục Y (Giả định ảnh góc nhìn ngang tầm mắt)
-    // Y cao (gần 100%) = Tiền cảnh (Gần camera)
-    // Y thấp (gần 0%) = Hậu cảnh (Xa camera) hoặc trên trần
+    // Làm tròn số để prompt gọn gàng hơn
+    const x = Math.round(asset.x);
+    const y = Math.round(asset.y);
+    const w = Math.round(asset.width);
+    const h = Math.round(asset.height);
     
-    let depthContext = "";
+    // Xác định ngữ cảnh độ sâu (Depth) để AI xử lý ánh sáng (Focus/Blur)
+    let depthContext = "MID-GROUND";
     const bottomY = asset.y + asset.height;
+    
+    // Quy tắc heuristic đơn giản: Càng thấp trong ảnh (y cao) thì càng gần camera
+    if (bottomY > 85) depthContext = "FOREGROUND (High Detail, Sharp Focus)";
+    else if (bottomY < 45) depthContext = "BACKGROUND (Slightly less focus if needed)";
 
-    if (bottomY > 85) {
-      depthContext = "FOREGROUND (Tiền cảnh - Yêu cầu chi tiết cao, kích thước lớn nhất)";
-    } else if (bottomY > 50) {
-      depthContext = "MID-GROUND (Trung cảnh - Kích thước trung bình)";
-    } else {
-      depthContext = "BACKGROUND/CEILING (Hậu cảnh hoặc Trần - Kích thước nhỏ theo luật xa gần)";
-    }
-
-    // Xác định tỉ lệ khung hình để gợi ý hình dáng
-    const aspectRatio = asset.width / asset.height;
-    const shapeHint = aspectRatio > 1.5 ? "Horizontal spread (Dàn ngang)" : aspectRatio < 0.6 ? "Vertical tall (Dạng cột cao)" : "Balanced aspect ratio";
+    // Input Image Index bắt đầu từ 2 (vì #1 là ảnh nền phòng)
+    const imageRefIndex = index + 2; 
 
     return `
-    --- OBJECT ${index + 1}: "${asset.label}" ---
-    - BOUNDING BOX: x=${Math.round(asset.x)}%, y=${Math.round(asset.y)}%, w=${Math.round(asset.width)}%, h=${Math.round(asset.height)}%
-    - ROTATION: ${Math.round(asset.rotation || 0)} degrees (Rotate the object by this amount if relevant).
-    - SPATIAL ZONE: ${depthContext}
-    - SHAPE HINT: ${shapeHint}
-    - SCALE: Maintain scale relative to the fixed composition defined above.
-    ${asset.image ? `
-    - *** REFERENCE IMAGE PROVIDED ***: 
-      Input #${2 + index} is the reference image for this object. 
-      YOU MUST USE THE EXACT DESIGN, COLOR, AND STYLE OF THIS REFERENCE IMAGE.
-      Do not hallucinate a new object. Composite this reference into the scene with realistic lighting and perspective adjustment.
-    ` : "- VISUAL REFERENCE: None provided, generate based on label."}
+    --- OBJECT #${index + 1} (Ref: Input Image ${imageRefIndex}) ---
+    TYPE: Decor Item (Label: "${asset.label}")
+    
+    1. STRICT PLACEMENT (HARD CONSTRAINT):
+       - Bounding Box: Left=${x}%, Top=${y}%, Width=${w}%, Height=${h}%
+       - RULE: The object must receive a "CONTAIN" fit within this box. DO NOT crop the object. DO NOT stretch distinct shapes.
+       - RULE: The object's bottom edge (at Top + Height) must "sit" on the floor/surface to cast a correct shadow.
+
+    2. VISUAL PROCESSING:
+       - SEGMENTATION: Automatically REMOVE the background of Input Image ${imageRefIndex} before placing. Only use the object itself.
+       - LIGHTING MATCH: Analyze the light direction in the main room (Input Image 1) and apply consistent highlights/shadows to this object.
+       - PERSPECTIVE: Adjust the object's perspective to match the room's vanishing point at this specific location (${depthContext}).
     `;
   }).join('\n');
 
-  // Trả về một khối Prompt kỹ thuật (System Instruction)
   return `
-  \n========== SPATIAL & PERSPECTIVE INSTRUCTIONS (CRITICAL) ==========
-  ${COMPOSITION_RULE_PROMPT}
-
-  You are performing 'Perspective-Aware Photobashing'. You MUST place the following objects into the scene with perfect architectural perspective:
-
+  \n========== STEP 2: DECOR SETUP INSTRUCTIONS (STRICT MODE) ==========
+  USER INTENT: The user has manually arranged these decor items exactly where they want them.
+  
+  *** COMPOSITION RULES ***:
+  1. NO COMPOSITION CHANGES: Do not move objects to make the scene "better". Respect user coordinates absolutely.
+  2. SCALE ACCURACY: If the user made an object small, keep it small. If large, keep it large.
+  3. REALISM: The primary goal is to make these inserted objects look like they naturally belong in the scene (Photorealistic Blending), not just pasted on top.
+  
+  DETAILS FOR EACH OBJECT:
   ${assetInstructions}
-
-  STRICT RULES FOR SCALING & PLACEMENT:
-  0. [CRITICAL] BOUNDING BOX COMPLIANCE: 
-     - The coordinates (x, y, w, h) provided are ABSOLUTE constraints relative to the FULL FRAME.
-     - Because NO CROPPING is allowed, these coordinates map 1:1 to the output pixels.
-     - You MUST place the object strictly within these bounds. 
-     - DO NOT resize or move the object outside this box even if you think it looks better.
-     - Imagine a grid 0-100 overlay on the image and place the pixels exactly there.
-  1. VANISHING POINT: Align all objects to the room's primary vanishing point.
-  2. CONTACT SHADOWS: All objects touching the floor MUST have realistic ambient occlusion and contact shadows to prevent the "floating" effect.
-  3. RELATIVE SCALE: Compare objects to human scale equivalents. (e.g., A flower vase cannot be larger than a chair; A wedding arch must be taller than a person).
-  4. OCCLUSION: Objects in the FOREGROUND must correctly obscure objects in the BACKGROUND.
-  ====================================================================\n
   `;
 };
 
