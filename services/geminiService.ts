@@ -759,3 +759,71 @@ export const generateIdeaDecor = async (
     throw error;
   }
 };
+
+/**
+ * Tạo bản vẽ 3D Axonometric từ ảnh chụp hiện trạng
+ */
+export const generateAxonometricView = async (
+  imageBase64: string,
+  mimeType: string,
+  eventDescription: string
+): Promise<string> => {
+  if (!process.env.API_KEY) {
+    throw new Error("API Key is missing.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  const systemInstruction = `
+    ROLE: Professional Architectural Visualizer & Event Designer.
+    TASK: Convert the input photo (current state) into a "3D Isometric Axonometric Cutaway" architectural drawing.
+    
+    STRICT VISUAL RULES:
+    1. VIEWPOINT: High-angle isometric view (approx 45 degrees), showing the room as a "cutaway box" floating in white space.
+    2. STYLE: Clean, high-end architectural visualization with realistic lighting but diagrammatic clarity.
+    3. TRANSFORMATION: Transform the empty/messy room into a fully decorated event venue based on the user's description.
+    4. DETAILS: Show wall thickness (cut section in black or dark grey).
+  `;
+
+  const userPrompt = `
+    Input Image: This is the current venue state.
+    User Request: Decorate this space for an event: "${eventDescription}".
+    
+    OUTPUT REQUIREMENT:
+    - Generate a 3D Axonometric view.
+    - Flooring: High quality material.
+    - Decor: Add tables, chairs, stage, and floral arrangements matching the description.
+    - Lighting: Warm, cinematic event lighting.
+    - Negative Prompt: 2D, flat photo, distorted perspective, messy, low resolution, blurry, text, watermark.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image', // Generating image
+      contents: {
+        parts: [
+          { text: userPrompt },
+          { inlineData: { mimeType: mimeType, data: imageBase64 } }
+        ]
+      },
+      config: {
+        systemInstruction: systemInstruction,
+      }
+    });
+
+    if (response.candidates && response.candidates.length > 0) {
+        const content = response.candidates[0].content;
+        if (content && content.parts) {
+            for (const part of content.parts) {
+                if (part.inlineData && part.inlineData.data) {
+                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                }
+            }
+        }
+    }
+    throw new Error("No image generated.");
+  } catch (error) {
+    console.error("Axonometric Gen Error:", error);
+    throw error;
+  }
+};

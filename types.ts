@@ -51,10 +51,11 @@ export enum AppState {
 
 export enum Tool {
   RENDER = 'render',
+  EVENT_AXONOMETRIC = 'event_axonometric', // New Tool
+  IDEA_GENERATOR = 'idea_generator',
   UPSCALE = 'upscale',
   ADVANCED_EDIT = 'advanced_edit',
-  SKETCH_CONVERTER = 'sketch_converter',
-  IDEA_GENERATOR = 'idea_generator' // New tool
+  SKETCH_CONVERTER = 'sketch_converter'
 }
 
 export type Resolution = '1K' | '2K' | '4K';
@@ -125,7 +126,7 @@ export interface SketchConverterProps {
   onReset: () => void;
 }
 
-export type IdeaStep = 'UPLOAD' | 'STRUCTURE_GENERATED' | 'COMPLETED';
+export type IdeaStep = 'UPLOAD' | 'STRUCTURE_RESULT' | 'DECOR_SETUP' | 'FINAL_RESULT';
 
 export interface IdeaGeneratorState {
   sourceSketch: FileData | null;
@@ -141,6 +142,23 @@ export interface IdeaGeneratorState {
 export interface IdeaGeneratorProps {
   state: IdeaGeneratorState;
   onStateChange: (newState: Partial<IdeaGeneratorState>) => void;
+  userCredits: number;
+  onDeductCredits?: (cost: number, description: string) => Promise<void>;
+  onReset: () => void;
+}
+
+// NEW: Event Axonometric Types
+export interface EventAxonometricState {
+  sourceImage: FileData | null;
+  eventDescription: string; // Mô tả sự kiện (VD: "Tiệc cưới tone trắng hồng")
+  resultImage: string | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface EventAxonometricProps {
+  state: EventAxonometricState;
+  onStateChange: (newState: Partial<EventAxonometricState>) => void;
   userCredits: number;
   onDeductCredits?: (cost: number, description: string) => Promise<void>;
   onReset: () => void;

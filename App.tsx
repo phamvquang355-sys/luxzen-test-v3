@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppState, FileData, RenderOptions, UpscaleState, Tool, Resolution, AdvancedEditState, EditMode, SketchConverterState, SketchStyle, IdeaGeneratorState } from './types';
+import { AppState, FileData, RenderOptions, UpscaleState, Tool, Resolution, AdvancedEditState, EditMode, SketchConverterState, SketchStyle, IdeaGeneratorState, EventAxonometricState } from './types';
 import { WEDDING_CATEGORIES, WEDDING_STYLES, COLOR_PALETTES, SURFACE_MATERIALS, TEXTILE_MATERIALS, TEXTILE_COLORS, PHOTOGRAPHY_PRESETS } from './constants';
 import { generateWeddingRender } from './services/geminiService';
 import { OptionSelector } from './components/OptionSelector';
@@ -9,6 +9,7 @@ import Upscale from './components/Upscale';
 import AdvancedEdit from './components/AdvancedEdit';
 import { SketchConverter } from './components/SketchConverter';
 import { IdeaGenerator } from './components/IdeaGenerator';
+import { EventAxonometric } from './components/EventAxonometric';
 
 const App: React.FC = () => {
   const [activeTool, setActiveTool] = useState<Tool>(Tool.RENDER);
@@ -77,6 +78,15 @@ const App: React.FC = () => {
     error: null,
     resultImages: [], 
     currentStep: 'UPLOAD',
+  });
+
+  // State for Event Axonometric tab
+  const [axonometricState, setAxonometricState] = useState<EventAxonometricState>({
+    sourceImage: null,
+    eventDescription: '',
+    resultImage: null,
+    isLoading: false,
+    error: null,
   });
 
   const handleOptionChange = <K extends keyof RenderOptions>(key: K, value: RenderOptions[K]) => {
@@ -203,6 +213,20 @@ const App: React.FC = () => {
     });
   };
 
+  const handleAxonometricStateChange = (newState: Partial<EventAxonometricState>) => {
+    setAxonometricState(prev => ({ ...prev, ...newState }));
+  };
+
+  const resetAxonometricTab = () => {
+      setAxonometricState({
+        sourceImage: null,
+        eventDescription: '',
+        resultImage: null,
+        isLoading: false,
+        error: null,
+      });
+  };
+
   const handleDeductCredits = async (cost: number, description: string) => {
     setUserCredits(prev => prev - cost);
     console.log(`Credits deducted: ${cost}. Remaining: ${userCredits - cost}. Action: ${description}`);
@@ -287,6 +311,11 @@ const App: React.FC = () => {
                         id: Tool.RENDER, 
                         label: 'Render 3D', 
                         icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    },
+                    {
+                        id: Tool.EVENT_AXONOMETRIC,
+                        label: 'Toàn Cảnh 3D',
+                        icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                     },
                     { 
                         id: Tool.IDEA_GENERATOR, 
@@ -591,6 +620,16 @@ const App: React.FC = () => {
               )}
             </div>
           </div>
+        )}
+
+        {activeTool === Tool.EVENT_AXONOMETRIC && (
+          <EventAxonometric 
+            state={axonometricState}
+            onStateChange={handleAxonometricStateChange}
+            userCredits={userCredits}
+            onDeductCredits={handleDeductCredits}
+            onReset={resetAxonometricTab}
+          />
         )}
 
         {activeTool === Tool.IDEA_GENERATOR && (
