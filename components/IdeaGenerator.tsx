@@ -302,6 +302,16 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         let newY = initialRect.y;
         if (resizingState.handle.includes('w')) newX = initialRect.x + (initialRect.w - newW);
         if (resizingState.handle.includes('n')) newY = initialRect.y + (initialRect.h - newH);
+        
+        // --- CLAMPING TO BOUNDARIES (0-100%) ---
+        // Ensure width/height don't exceed 100%
+        newW = Math.min(newW, 100);
+        newH = Math.min(newH, 100);
+        
+        // Ensure Position doesn't go below 0 or above 100-size
+        newX = Math.max(0, Math.min(newX, 100 - newW));
+        newY = Math.max(0, Math.min(newY, 100 - newH));
+
         const newAssets = assets.map(a => a.id === resizingState.assetId ? { ...a, x: newX, y: newY, width: newW, height: newH } : a);
         setAssets(newAssets);
         return;
@@ -312,7 +322,18 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         const deltaY = e.clientY - dragStart.y;
         const deltaXPercent = (deltaX / imageMetrics.width) * 100;
         const deltaYPercent = (deltaY / imageMetrics.height) * 100;
-        const newAssets = assets.map(a => a.id === selectedAssetId ? { ...a, x: initialAssetPos.x + deltaXPercent, y: initialAssetPos.y + deltaYPercent } : a);
+        
+        let newX = initialAssetPos.x + deltaXPercent;
+        let newY = initialAssetPos.y + deltaYPercent;
+
+        const asset = assets.find(a => a.id === selectedAssetId);
+        if (asset) {
+             // --- CLAMPING TO BOUNDARIES (0-100%) ---
+             newX = Math.max(0, Math.min(newX, 100 - asset.width));
+             newY = Math.max(0, Math.min(newY, 100 - asset.height));
+        }
+
+        const newAssets = assets.map(a => a.id === selectedAssetId ? { ...a, x: newX, y: newY } : a);
         setAssets(newAssets);
     }
   };
@@ -597,6 +618,11 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
                                                 <RotateIcon />
                                             </div>
                                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-0.5 h-8 bg-theme-gold -z-10" />
+
+                                            {/* Size Indicator */}
+                                            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-theme-base text-theme-gold text-[9px] px-2 py-0.5 rounded border border-theme-gold/20 whitespace-nowrap z-50 shadow-md">
+                                                {Math.round(asset.width)}% x {Math.round(asset.height)}%
+                                            </div>
                                         </>
                                     )}
                                     <span className="absolute top-0 right-0 bg-theme-gold text-theme-base text-[9px] px-1 font-bold rounded-bl shadow-sm pointer-events-none">#{idx + 1}</span>

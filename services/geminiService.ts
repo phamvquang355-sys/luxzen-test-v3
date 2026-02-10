@@ -144,6 +144,7 @@ MỤC TIÊU: Tạo ra bản render 8k siêu thực nhưng khi đặt cạnh ản
 /**
  * [MỚI] Hàm tạo chỉ thị không gian (Spatial Instructions)
  * Giúp AI hiểu vị trí và tỉ lệ vật thể dựa trên tọa độ bounding box.
+ * CẬP NHẬT: Thêm "HARD CONSTRAINT" về kích thước để đảm bảo AI không tự ý scale lại.
  */
 const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
   if (!assets || assets.length === 0) return "";
@@ -155,43 +156,48 @@ const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
     const w = Math.round(asset.width);
     const h = Math.round(asset.height);
     
-    // Xác định ngữ cảnh độ sâu (Depth) để AI xử lý ánh sáng (Focus/Blur)
-    let depthContext = "MID-GROUND";
-    const bottomY = asset.y + asset.height;
-    
-    // Quy tắc heuristic đơn giản: Càng thấp trong ảnh (y cao) thì càng gần camera
-    if (bottomY > 85) depthContext = "FOREGROUND (High Detail, Sharp Focus)";
-    else if (bottomY < 45) depthContext = "BACKGROUND (Slightly less focus if needed)";
-
     // Input Image Index bắt đầu từ 2 (vì #1 là ảnh nền phòng)
     const imageRefIndex = index + 2; 
+
+    // Calculate center for alternative reference
+    const centerX = Math.round(x + w/2);
+    const centerY = Math.round(y + h/2);
 
     return `
     --- OBJECT #${index + 1} (Ref: Input Image ${imageRefIndex}) ---
     TYPE: Decor Item (Label: "${asset.label}")
     
-    1. STRICT PLACEMENT (HARD CONSTRAINT):
-       - Bounding Box: Left=${x}%, Top=${y}%, Width=${w}%, Height=${h}%
-       - RULE: The object must receive a "CONTAIN" fit within this box. DO NOT crop the object. DO NOT stretch distinct shapes.
-       - RULE: The object's bottom edge (at Top + Height) must "sit" on the floor/surface to cast a correct shadow.
-
-    2. VISUAL PROCESSING:
-       - SEGMENTATION: Automatically REMOVE the background of Input Image ${imageRefIndex} before placing. Only use the object itself.
-       - LIGHTING MATCH: Analyze the light direction in the main room (Input Image 1) and apply consistent highlights/shadows to this object.
-       - PERSPECTIVE: Adjust the object's perspective to match the room's vanishing point at this specific location (${depthContext}).
+    1. EXACT LOCATION (HARD CONSTRAINT):
+       - Origin (Top-Left): X=${x}%, Y=${y}%
+       - Size: Width=${w}%, Height=${h}%
+       - Center Point: X=${centerX}%, Y=${centerY}%
+       - ACTION: Place the object precisely within this bounding box [${x}, ${y}, ${x+w}, ${y+h}]. 
+       
+    2. STRICT RULES:
+       - DO NOT MOVE: Do not shift the object to align with perspective lines if it violates the bounding box. The user's placement is final.
+       - DO NOT RESIZE: Maintain the aspect ratio implied by the reference image, but fit it within the user's defined width/height.
+       
+    3. COMPOSITING:
+       - Remove background from the reference image (Input ${imageRefIndex}).
+       - Blend edges and add contact shadows at Y=${y+h}% (Bottom edge).
     `;
   }).join('\n');
 
   return `
-  \n========== STEP 2: DECOR SETUP INSTRUCTIONS (STRICT MODE) ==========
-  USER INTENT: The user has manually arranged these decor items exactly where they want them.
+  \n========== STEP 2: DECOR COMPOSITING (COORDINATE LOCKED) ==========
+  USER INSTRUCTION: "I have arranged these items exactly where I want them. Don't move them."
   
-  *** COMPOSITION RULES ***:
-  1. NO COMPOSITION CHANGES: Do not move objects to make the scene "better". Respect user coordinates absolutely.
-  2. SCALE ACCURACY: If the user made an object small, keep it small. If large, keep it large.
-  3. REALISM: The primary goal is to make these inserted objects look like they naturally belong in the scene (Photorealistic Blending), not just pasted on top.
+  COORDINATE SYSTEM: 
+  - Image Width: 0% to 100% (Left to Right)
+  - Image Height: 0% to 100% (Top to Bottom)
   
-  DETAILS FOR EACH OBJECT:
+  EXECUTION PLAN:
+  1. For each object below, identify the target area on the background (Input 1).
+  2. Extract the object from its reference image.
+  3. Warp/Scale the object to fit the target bounding box EXACTLY.
+  4. Apply lighting/shadows to match the scene.
+  
+  OBJECTS TO PLACE:
   ${assetInstructions}
   `;
 };
