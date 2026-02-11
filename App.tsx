@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppState, FileData, RenderOptions, UpscaleState, Tool, Resolution, AdvancedEditState, EditMode, SketchConverterState, SketchStyle, IdeaGeneratorState, EventAxonometricState } from './types';
+import { AppState, FileData, RenderOptions, UpscaleState, Tool, Resolution, AdvancedEditState, EditMode, SketchConverterState, SketchStyle, IdeaGeneratorState, AxonometricState, PanoramicAxoState } from './types';
 import { WEDDING_CATEGORIES, WEDDING_STYLES, COLOR_PALETTES, SURFACE_MATERIALS, TEXTILE_MATERIALS, TEXTILE_COLORS, PHOTOGRAPHY_PRESETS } from './constants';
 import { generateWeddingRender } from './services/geminiService';
 import { OptionSelector } from './components/OptionSelector';
@@ -9,7 +9,8 @@ import Upscale from './components/Upscale';
 import AdvancedEdit from './components/AdvancedEdit';
 import { SketchConverter } from './components/SketchConverter';
 import { IdeaGenerator } from './components/IdeaGenerator';
-import { EventAxonometric } from './components/EventAxonometric';
+import { AxonometricTool } from './components/AxonometricTool';
+import { PanoramicAxoTool } from './components/PanoramicAxoTool';
 
 const App: React.FC = () => {
   const [activeTool, setActiveTool] = useState<Tool>(Tool.RENDER);
@@ -80,11 +81,21 @@ const App: React.FC = () => {
     currentStep: 'UPLOAD',
   });
 
-  // State for Event Axonometric tab
-  const [axonometricState, setAxonometricState] = useState<EventAxonometricState>({
-    sourceImage: null,
-    eventDescription: '',
+  // State for Axonometric Tool
+  const [axoState, setAxoState] = useState<AxonometricState>({
+    floorPlan: null,
+    cornerPhotos: [],
     resultImage: null,
+    analysisText: null,
+    isLoading: false,
+    error: null,
+  });
+
+  // State for Panoramic Axonometric Tool (New)
+  const [panoramicState, setPanoramicState] = useState<PanoramicAxoState>({
+    perspectivePhotos: [],
+    resultImage: null,
+    aiReasoning: null,
     isLoading: false,
     error: null,
   });
@@ -213,18 +224,25 @@ const App: React.FC = () => {
     });
   };
 
-  const handleAxonometricStateChange = (newState: Partial<EventAxonometricState>) => {
-    setAxonometricState(prev => ({ ...prev, ...newState }));
+  const resetAxoTab = () => {
+    setAxoState({
+      floorPlan: null,
+      cornerPhotos: [],
+      resultImage: null,
+      analysisText: null,
+      isLoading: false,
+      error: null,
+    });
   };
 
-  const resetAxonometricTab = () => {
-      setAxonometricState({
-        sourceImage: null,
-        eventDescription: '',
-        resultImage: null,
-        isLoading: false,
-        error: null,
-      });
+  const resetPanoramicTab = () => {
+    setPanoramicState({
+      perspectivePhotos: [],
+      resultImage: null,
+      aiReasoning: null,
+      isLoading: false,
+      error: null,
+    });
   };
 
   const handleDeductCredits = async (cost: number, description: string) => {
@@ -313,7 +331,7 @@ const App: React.FC = () => {
                         icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                     },
                     {
-                        id: Tool.EVENT_AXONOMETRIC,
+                        id: Tool.PANORAMIC_AXO, // Updated to new tool ID
                         label: 'Toàn Cảnh 3D',
                         icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                     },
@@ -559,7 +577,7 @@ const App: React.FC = () => {
               {appState === AppState.IDLE && !sourceImage && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-theme-text-sub bg-theme-base/50">
                     <svg className="w-24 h-24 mb-6 opacity-30 text-theme-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <p className="text-xl font-light italic text-theme-text-main">Tuyệt tác của bạn bắt đầu từ đây.</p>
                     <p className="text-sm mt-2 opacity-70">Tải lên một bản phác thảo để bắt đầu tạo render.</p>
@@ -622,13 +640,23 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {activeTool === Tool.EVENT_AXONOMETRIC && (
-          <EventAxonometric 
-            state={axonometricState}
-            onStateChange={handleAxonometricStateChange}
+        {activeTool === Tool.PANORAMIC_AXO && (
+          <PanoramicAxoTool
+            state={panoramicState}
+            onStateChange={(newState) => setPanoramicState(prev => ({ ...prev, ...newState }))}
             userCredits={userCredits}
             onDeductCredits={handleDeductCredits}
-            onReset={resetAxonometricTab}
+            onReset={resetPanoramicTab}
+          />
+        )}
+
+        {activeTool === Tool.AXONOMETRIC && (
+          <AxonometricTool 
+            state={axoState}
+            onStateChange={(newState) => setAxoState(prev => ({ ...prev, ...newState }))}
+            userCredits={userCredits}
+            onDeductCredits={handleDeductCredits}
+            onReset={resetAxoTab}
           />
         )}
 

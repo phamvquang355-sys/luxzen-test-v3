@@ -51,7 +51,8 @@ export enum AppState {
 
 export enum Tool {
   RENDER = 'render',
-  EVENT_AXONOMETRIC = 'event_axonometric', // New Tool
+  AXONOMETRIC = 'axonometric', // Tool cũ (có mặt bằng)
+  PANORAMIC_AXO = 'panoramic_axo', // <-- TOOL MỚI (Chỉ từ ảnh góc)
   IDEA_GENERATOR = 'idea_generator',
   UPSCALE = 'upscale',
   ADVANCED_EDIT = 'advanced_edit',
@@ -147,10 +148,45 @@ export interface IdeaGeneratorProps {
   onReset: () => void;
 }
 
-// NEW: Event Axonometric Types
+// NEW: Axonometric Types (Existing)
+export interface AxonometricState {
+  floorPlan: FileData | null;
+  cornerPhotos: FileData[];
+  resultImage: string | null;
+  analysisText: string | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface AxonometricProps {
+  state: AxonometricState;
+  onStateChange: (newState: Partial<AxonometricState>) => void;
+  userCredits: number;
+  onDeductCredits?: (cost: number, description: string) => Promise<void>;
+  onReset: () => void;
+}
+
+// NEW: Panoramic Axonometric Types (New Tool)
+export interface PanoramicAxoState {
+  perspectivePhotos: FileData[]; // Mảng các ảnh chụp/render góc
+  resultImage: string | null;    // Kết quả ảnh toàn cảnh từ trên cao
+  aiReasoning: string | null;    // (Tùy chọn) Để hiển thị AI đã hiểu không gian như thế nào
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface PanoramicAxoProps {
+  state: PanoramicAxoState;
+  onStateChange: (newState: Partial<PanoramicAxoState>) => void;
+  userCredits: number;
+  onDeductCredits?: (cost: number, description: string) => Promise<void>;
+  onReset: () => void;
+}
+
+// Support for EventAxonometric.tsx (Single Image + Text flow)
 export interface EventAxonometricState {
   sourceImage: FileData | null;
-  eventDescription: string; // Mô tả sự kiện (VD: "Tiệc cưới tone trắng hồng")
+  eventDescription: string;
   resultImage: string | null;
   isLoading: boolean;
   error: string | null;
@@ -161,7 +197,6 @@ export interface EventAxonometricProps {
   onStateChange: (newState: Partial<EventAxonometricState>) => void;
   userCredits: number;
   onDeductCredits?: (cost: number, description: string) => Promise<void>;
-  onReset: () => void;
 }
 
 

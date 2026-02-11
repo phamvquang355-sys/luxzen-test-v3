@@ -671,69 +671,214 @@ export const generateIdeaDecor = async (
 };
 
 /**
- * Tạo bản vẽ 3D Axonometric từ ảnh chụp hiện trạng
+ * Tính năng Toàn cảnh 3D (Auto-Analyze 3D Axonometric)
+ * Quy trình 2 bước: Phân tích Vision -> Vẽ ảnh AI
  */
-export const generateAxonometricView = async (
-  imageBase64: string,
-  mimeType: string,
-  eventDescription: string
-): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API Key is missing.");
-  }
-
+export const autoGenerateAxonometric = async (
+  floorPlan: FileData,
+  cornerPhotos: FileData[]
+): Promise<{ resultImage: string; analysisText: string }> => {
+  if (!process.env.API_KEY) throw new Error("API Key is missing.");
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
-  const systemInstruction = `
-    ROLE: Professional Architectural Visualizer & Event Designer.
-    TASK: Convert the input photo (current state) into a "3D Isometric Axonometric Cutaway" architectural drawing.
+
+  // ==========================================
+  // BƯỚC 1: PHÂN TÍCH ĐA PHƯƠNG THỨC (VISION)
+  // ==========================================
+  const analysisSystemPrompt = `
+    ROLE: Elite Event Designer & Architectural Analyst.
+    TASK: Analyze the provided Floor Plan (Image 1) and Room Photos (Images 2+).
     
-    STRICT VISUAL RULES:
-    1. VIEWPOINT: High-angle isometric view (approx 45 degrees), showing the room as a "cutaway box" floating in white space.
-    2. STYLE: Clean, high-end architectural visualization with realistic lighting but diagrammatic clarity.
-    3. TRANSFORMATION: Transform the empty/messy room into a fully decorated event venue based on the user's description.
-    4. DETAILS: Show wall thickness (cut section in black or dark grey).
+    1. Identify the existing architectural style and materials (e.g., rustic brick, wood floor).
+    2. Invent a high-end event concept (e.g., Wedding, Gala) that perfectly matches the existing vibe.
+    3. Describe a highly detailed "3D Isometric Axonometric Cutaway" view of this event space respecting the floor plan layout.
+    
+    OUTPUT FORMAT (Strict JSON only):
+    {
+      "analysisText": "Your short Vietnamese explanation of the design concept based on the room's vibe (e.g. 'Dựa trên sàn gỗ và tường gạch mộc, tôi đề xuất thiết kế tiệc cưới phong cách Rustic...').",
+      "imagePrompt": "A highly detailed English prompt for an image generator. Must start with '3D isometric axonometric cutaway view of...'. Describe the event, the layout based on the floor plan, and the materials based on the photos. Cinematic lighting, photorealistic, 8k."
+    }
   `;
 
-  const userPrompt = `
-    Input Image: This is the current venue state.
-    User Request: Decorate this space for an event: "${eventDescription}".
+  const contents: any[] = [
+    { text: analysisSystemPrompt },
+    { text: "--- IMAGE 1: FLOOR PLAN ---" },
+    { inlineData: { mimeType: floorPlan.mimeType, data: floorPlan.base64 } }
+  ];
+
+  cornerPhotos.forEach((photo, index) => {
+    contents.push({ text: `--- IMAGE ${index + 2}: ROOM CORNER PHOTO ---` });
+    contents.push({ inlineData: { mimeType: photo.mimeType, data: photo.base64 } });
+  });
+
+  try {
+    // Gọi Gemini 3 Pro (hỗ trợ phân tích ảnh và văn bản phức tạp)
+    const analysisResponse = await ai.models.generateContent({
+      model: 'gemini-3-pro-preview', 
+      contents: [{ role: 'user', parts: contents }],
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    const responseText = analysisResponse.text || "{}";
+    const parsedData = JSON.parse(responseText);
+    const generatedPrompt = parsedData.imagePrompt;
+    const analysisResultText = parsedData.analysisText;
+
+    if (!generatedPrompt) throw new Error("AI không thể phân tích và tạo Prompt.");
+
+    // ==========================================
+    // BƯỚC 2: TẠO ẢNH TỪ PROMPT SINH TỰ ĐỘNG
+    // ==========================================
+    const imageResponse = await ai.models.generateContent({
+      model: 'gemini-3-pro-image-preview', 
+      contents: [{ text: generatedPrompt }]
+    });
+
+    const base64Image = imageResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    const mimeType = imageResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || 'image/jpeg';
     
-    OUTPUT REQUIREMENT:
-    - Generate a 3D Axonometric view.
-    - Flooring: High quality material.
-    - Decor: Add tables, chairs, stage, and floral arrangements matching the description.
-    - Lighting: Warm, cinematic event lighting.
-    - Negative Prompt: 2D, flat photo, distorted perspective, messy, low resolution, blurry, text, watermark.
+    if (!base64Image) {
+        throw new Error("Không thể kết xuất hình ảnh 3D từ phân tích.");
+    }
+
+    return {
+      analysisText: analysisResultText,
+      resultImage: `data:${mimeType};base64,${base64Image}` 
+    };
+
+  } catch (error) {
+    console.error("Auto Analysis Axonometric Error:", error);
+    throw error;
+  }
+};
+
+/**
+ * --- EVENT AXONOMETRIC (Alternative Single Image Workflow) ---
+ * Supports the legacy or alternative EventAxonometric component.
+ */
+export const generateAxonometricView = async (
+  sourceImageBase64: string,
+  sourceImageMimeType: string,
+  description: string
+): Promise<string> => {
+  if (!process.env.API_KEY) throw new Error("API Key is missing.");
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const prompt = `
+    ROLE: Professional 3D Visualizer.
+    TASK: Create a 3D Axonometric View (Cutaway) based on the provided source image and description.
+    SOURCE CONTEXT: The provided image shows the current state or layout.
+    USER DESCRIPTION: ${description}
+    REQUIREMENTS: 
+    - Perspective: Isometric / Axonometric.
+    - Style: High-end architectural rendering, photorealistic.
+    - Lighting: Cinematic studio lighting.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image', // Generating image
+      model: 'gemini-3-pro-image-preview',
       contents: {
         parts: [
-          { text: userPrompt },
-          { inlineData: { mimeType: mimeType, data: imageBase64 } }
+          { text: prompt },
+          { inlineData: { mimeType: sourceImageMimeType, data: sourceImageBase64 } }
         ]
-      },
-      config: {
-        systemInstruction: systemInstruction,
       }
     });
 
-    if (response.candidates && response.candidates.length > 0) {
-        const content = response.candidates[0].content;
-        if (content && content.parts) {
-            for (const part of content.parts) {
-                if (part.inlineData && part.inlineData.data) {
-                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                }
-            }
+    if (response.candidates && response.candidates[0].content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData?.data) {
+          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
+      }
     }
     throw new Error("No image generated.");
   } catch (error) {
-    console.error("Axonometric Gen Error:", error);
+    console.error("Gemini Axonometric View Error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Tạo ảnh 3D Axonometric toàn cảnh từ trên cao chỉ dựa vào các ảnh góc phối cảnh.
+ * Sử dụng quy trình 2 bước: Vision phân tích & tái tạo -> Sinh ảnh.
+ */
+export const generatePanoramicAxonometric = async (
+  perspectivePhotos: FileData[]
+): Promise<{ resultImage: string; aiReasoning: string }> => {
+  if (!process.env.API_KEY) throw new Error("API Key is missing.");
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  // ============================================================================
+  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (Dùng Gemini 3 Pro Vision)
+  // ============================================================================
+  const reconstructionSystemPrompt = `
+    ROLE: Expert Spatial Reconstruction Architect & 3D Visualizer.
+    TASK: You will receive multiple perspective photos (corner shots) of a single room. Your job is to mentally synthesize these views to reconstruct the entire room's layout, and then describe it from a top-down perspective.
+
+    MENTAL PROCESS (Do not output this):
+    1.  Analyze all input photos to understand the room's shape, key furniture, architectural style, flooring, and lighting.
+    2.  Extrapolate the unseen areas to form a complete, cohesive floor plan in your mind.
+    3.  Imagine looking straight down at this complete room from a high-angle 3D axonometric perspective (bird's-eye view).
+
+    OUTPUT REQUIREMENT (Strict JSON):
+    Output a JSON object with two fields:
+    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi xác định đây là phòng khách phong cách Bắc Âu hình chữ L, sàn gỗ sồi...").
+    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator to create this exact top-down axonometric view. It must describe the entire layout as a "3D diorama" or "cutaway box" viewed from above, detailing furniture placement across the whole room, materials, and cinematic lighting.
+  `;
+
+  // Chuẩn bị dữ liệu gửi cho Vision Model
+  const contents: any[] = [{ text: reconstructionSystemPrompt }];
+  perspectivePhotos.forEach((photo, index) => {
+    contents.push({ text: `--- INPUT PERSPECTIVE PHOTO ${index + 1} ---` });
+    contents.push({ inlineData: { mimeType: photo.mimeType, data: photo.base64 } });
+  });
+
+  try {
+    // Gọi Model Vision (Sử dụng Gemini 3 Pro)
+    const reconstructionResponse = await ai.models.generateContent({
+      model: 'gemini-3-pro-preview', // Model này cần mạnh về Vision
+      contents: [{ role: 'user', parts: contents }],
+      config: { responseMimeType: "application/json" }
+    });
+
+    const responseText = reconstructionResponse.text || "{}";
+    let parsedData;
+    try {
+        parsedData = JSON.parse(responseText);
+    } catch (e) {
+        throw new Error("AI không trả về đúng định dạng JSON để tái tạo không gian.");
+    }
+    
+    const { imageGenPrompt, reasoning } = parsedData;
+
+    if (!imageGenPrompt) throw new Error("AI không thể tái tạo không gian từ các ảnh cung cấp.");
+
+    // ============================================================================
+    // BƯỚC 2: SINH ẢNH TỪ PROMPT ĐÃ TÁI TẠO
+    // ============================================================================
+    const finalImageResponse = await ai.models.generateContent({
+      model: 'gemini-3-pro-image-preview',
+      contents: [{ text: `Generate an image based on this description: ${imageGenPrompt}` }]
+    });
+    
+    // Xử lý kết quả trả về
+    const base64Image = finalImageResponse.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+    const mimeType = finalImageResponse.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.mimeType || 'image/jpeg';
+
+    if (!base64Image) {
+        throw new Error("Không thể tạo hình ảnh toàn cảnh từ mô tả.");
+    }
+
+    return {
+      resultImage: `data:${mimeType};base64,${base64Image}`,
+      aiReasoning: reasoning
+    };
+
+  } catch (error) {
+    console.error("Panoramic Gen Error:", error);
     throw error;
   }
 };
