@@ -20,16 +20,26 @@ const COMPOSITION_RULE_PROMPT = `
 ===================================================
 `;
 
-// 2. Thêm Prompt chuyên dụng cho việc ghép đồ (Bước 2)
-const DECOR_PLACEMENT_ONLY_PROMPT = `
-=== MODE: OBJECT INSERTION ONLY (CHẾ ĐỘ CHỈ GHÉP ĐỒ) ===
-CONTEXT: The provided image is a FINAL ARCHITECTURAL RENDER.
-TASK: Insert the requested decor assets into this EXACT scene.
-CRITICAL CONSTRAINTS (VIOLATION = FAIL):
-1. BACKGROUND LOCK: DO NOT redraw the room. The walls, floor, ceiling, lighting, and camera angle MUST remain 100% identical to the input image.
-2. PERSPECTIVE MATCH: Place new objects respecting the existing vanishing point and floor plane.
-3. NO RE-COMPOSITION: Do not zoom, crop, or shift the frame.
-========================================================
+// 2. Thêm Prompt chuyên dụng cho việc render lại ảnh ghép (Bước 2)
+const REALISTIC_BLENDING_PROMPT = `
+You are an expert Architectural Visualizer and Post-Production Artist.
+
+INPUT DATA:
+- An image containing a room background with decor objects pasted on top of it.
+- This creates a "collage" look where objects may look flat, floating, or have jagged edges.
+
+YOUR TASK:
+Transform this rough composite image into a single, high-end, photorealistic photograph.
+
+STRICT GUIDELINES:
+1. **GEOMETRY LOCK (CRITICAL):** Do NOT move, resize, add, or remove any objects. The objects are already placed exactly where the user wants them. Your job is ONLY to improve their appearance.
+2. **LIGHTING INTEGRATION:** Analyze the light direction from the original room (windows, lamps). Generate realistic CAST SHADOWS for the pasted objects onto the floor and walls.
+3. **COLOR MATCHING:** Adjust the color temperature, exposure, and contrast of the pasted objects so they perfectly match the room's environment.
+4. **EDGE REFINEMENT:** Remove the sharp "cut-out" edges of the pasted objects. Blend them naturally with the background.
+5. **REFLECTION:** If the floor is shiny/reflective, generate correct reflections of the decor objects on the floor.
+
+OUTPUT:
+- A high-resolution, photorealistic image.
 `;
 
 /**
@@ -141,67 +151,6 @@ MỤC TIÊU: Tạo ra bản render 8k siêu thực nhưng khi đặt cạnh ản
   `;
 };
 
-/**
- * [MỚI] Hàm tạo chỉ thị không gian (Spatial Instructions)
- * Giúp AI hiểu vị trí và tỉ lệ vật thể dựa trên tọa độ bounding box.
- * CẬP NHẬT: Thêm "HARD CONSTRAINT" về kích thước để đảm bảo AI không tự ý scale lại.
- */
-const generateSpatialInstructions = (assets: IdeaAsset[]): string => {
-  if (!assets || assets.length === 0) return "";
-
-  const assetInstructions = assets.map((asset, index) => {
-    // Làm tròn số để prompt gọn gàng hơn
-    const x = Math.round(asset.x);
-    const y = Math.round(asset.y);
-    const w = Math.round(asset.width);
-    const h = Math.round(asset.height);
-    
-    // Input Image Index bắt đầu từ 2 (vì #1 là ảnh nền phòng)
-    const imageRefIndex = index + 2; 
-
-    // Calculate center for alternative reference
-    const centerX = Math.round(x + w/2);
-    const centerY = Math.round(y + h/2);
-
-    return `
-    --- OBJECT #${index + 1} (Ref: Input Image ${imageRefIndex}) ---
-    TYPE: Decor Item (Label: "${asset.label}")
-    
-    1. EXACT LOCATION (HARD CONSTRAINT):
-       - Origin (Top-Left): X=${x}%, Y=${y}%
-       - Size: Width=${w}%, Height=${h}%
-       - Center Point: X=${centerX}%, Y=${centerY}%
-       - ACTION: Place the object precisely within this bounding box [${x}, ${y}, ${x+w}, ${y+h}]. 
-       
-    2. STRICT RULES:
-       - DO NOT MOVE: Do not shift the object to align with perspective lines if it violates the bounding box. The user's placement is final.
-       - DO NOT RESIZE: Maintain the aspect ratio implied by the reference image, but fit it within the user's defined width/height.
-       
-    3. COMPOSITING:
-       - Remove background from the reference image (Input ${imageRefIndex}).
-       - Blend edges and add contact shadows at Y=${y+h}% (Bottom edge).
-    `;
-  }).join('\n');
-
-  return `
-  \n========== STEP 2: DECOR COMPOSITING (COORDINATE LOCKED) ==========
-  USER INSTRUCTION: "I have arranged these items exactly where I want them. Don't move them."
-  
-  COORDINATE SYSTEM: 
-  - Image Width: 0% to 100% (Left to Right)
-  - Image Height: 0% to 100% (Top to Bottom)
-  
-  EXECUTION PLAN:
-  1. For each object below, identify the target area on the background (Input 1).
-  2. Extract the object from its reference image.
-  3. Warp/Scale the object to fit the target bounding box EXACTLY.
-  4. Apply lighting/shadows to match the scene.
-  
-  OBJECTS TO PLACE:
-  ${assetInstructions}
-  `;
-};
-
 // ... (Existing helper functions generatePromptFromImageAndText, generateRenderPrompt, generateWeddingRender, getSupportedAspectRatio, generateHighQualityImage, generateAdvancedEdit, detectSimilarObjects, generateSketch - keep them as is) ...
 export const generatePromptFromImageAndText = async (
   image: FileData, 
@@ -270,7 +219,10 @@ export const generateWeddingRender = async (
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const empowermentPrompt = getEmpowermentPrompt(options);
-  const spatialPrompt = options.assets ? generateSpatialInstructions(options.assets) : "";
+  // Spatial Instructions are NOT used in the composite image approach of Idea Generator Step 2, 
+  // but might be used here for main render if assets exist. 
+  // Keeping it empty here as the function signature didn't change for this specific file.
+  const spatialPrompt = ""; 
 
   let masterPrompt = "";
   let textileDetails = '';
@@ -657,83 +609,35 @@ export const generateIdeaStructure = async (
 
 /**
  * --- GIAI ĐOẠN 2: Sắp Đặt Decor (Pass 2 - Decoration) ---
- * Updated to accept optional strict mode for background preservation.
+ * UPDATED: Uses a pre-composited image from frontend and focuses on rendering blending.
  */
 export const generateIdeaDecor = async (
-  baseImageBase64: string, // Base image from Pass 1
-  baseImageMimeType: string,
-  assets: IdeaAsset[],
-  imageCount: number, // New parameter
-  onStatusUpdate?: (status: string) => void,
-  isStrictBackgroundPreservation: boolean = false // NEW: Mode for strict overlay
+  compositeImageBase64: string, // Changed from background + assets list
+  compositeImageMimeType: string,
+  imageCount: number, 
+  onStatusUpdate?: (status: string) => void
 ): Promise<string[]> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing.");
   }
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  if (onStatusUpdate) onStatusUpdate("Đang phân tích và sắp đặt vật thể...");
+  if (onStatusUpdate) onStatusUpdate("Đang hoàn thiện bản phối cảnh cuối cùng...");
 
-  // Generate enhanced spatial instructions using the helper
-  const spatialInstructions = generateSpatialInstructions(assets);
-
-  let decorPrompt = "";
-  let modelName = 'gemini-2.5-flash-image';
-
-  if (isStrictBackgroundPreservation) {
-    // === STRICT DECOR ONLY MODE ===
-    modelName = 'gemini-3-pro-image-preview'; // High quality for blending
-    decorPrompt = `
-      ${DECOR_PLACEMENT_ONLY_PROMPT}
-      ${spatialInstructions}
-      
-      DESCRIPTION OF ASSETS TO ADD:
-      ${assets.map(a => `- ${a.label}`).join('\n')}
-      
-      The rest of the room (Architecture, Material, Light) is FIXED.
-    `;
-  } else {
-    // === STANDARD MODE (Context Aware) ===
-    decorPrompt = `
-      ROLE: Professional Wedding Decorator.
-      TASK: Composite specific decorative items into the provided BACKGROUND (Input 1).
-      
-      BACKGROUND: The first image is the architectural base. Keep its lighting and perspective exactly as is.
-      
-      SPATIAL & PERSPECTIVE INSTRUCTIONS:
-      ${spatialInstructions}
-      
-      INSTRUCTIONS:
-      1. Place the assets at the specified regions defined in the spatial instructions.
-      2. BLENDING: Ensure the inserted objects cast realistic shadows on the floor/walls of the background. Match the color temperature and lighting direction of the background.
-      3. SCALE: Scale the objects appropriately for the perspective at that depth and within the defined region.
-      4. If an asset image is provided (subsequent inputs), use that exact design. If no image is provided for a label, generate a high-quality object matching the label description.
-      
-      Output: Final photorealistic event render.
-    `;
-  }
+  // Use the realistic blending prompt
+  const decorPrompt = REALISTIC_BLENDING_PROMPT;
+  
+  // Use a high-quality model for final rendering/blending
+  const modelName = 'gemini-3-pro-image-preview'; 
 
   const parts: any[] = [
     { text: decorPrompt },
-    { inlineData: { mimeType: baseImageMimeType, data: baseImageBase64 } } // Background
+    { inlineData: { mimeType: compositeImageMimeType, data: compositeImageBase64 } }
   ];
-
-  // Add asset images to the context
-  assets.forEach((asset, index) => {
-    if (asset.image) {
-      parts.push({ 
-        inlineData: { mimeType: asset.image.mimeType, data: asset.image.base64 } 
-      });
-      parts.push({ text: `[Reference Image for Asset #${index + 1}]` });
-    }
-  });
-
-  if (onStatusUpdate) onStatusUpdate("Đang hoàn thiện bản phối cảnh cuối cùng...");
 
   try {
     const images: string[] = [];
     
-    // Loop for multiple images
     for (let i = 0; i < imageCount; i++) {
         if (onStatusUpdate && imageCount > 1) onStatusUpdate(`Đang tạo phương án ${i + 1}/${imageCount}...`);
         
@@ -741,7 +645,7 @@ export const generateIdeaDecor = async (
             model: modelName,
             contents: { parts: parts },
             config: {
-                systemInstruction: "You are an expert Image Compositor and Decorator. Seamlessly blend objects into a scene."
+                systemInstruction: "You are an expert Image Compositor and Decorator. Your goal is to blend objects seamlessly into a scene."
             }
         });
 

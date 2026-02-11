@@ -31,6 +31,89 @@ const getRenderedImageRect = (img: HTMLImageElement) => {
   return { left, top, width: renderedWidth, height: renderedHeight };
 };
 
+// --- HELPER: Composite Image Generator ---
+const createCompositeImage = async (
+  structureImageSrc: string, 
+  assets: IdeaAsset[]
+): Promise<{ base64: string; mimeType: string }> => {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+        reject(new Error("Could not create canvas context"));
+        return;
+    }
+
+    const bgImg = new Image();
+    bgImg.crossOrigin = "anonymous";
+    bgImg.src = structureImageSrc;
+    
+    bgImg.onload = async () => {
+      // 1. Set Canvas size to match the high-res background
+      canvas.width = bgImg.naturalWidth;
+      canvas.height = bgImg.naturalHeight;
+      
+      // 2. Draw Background
+      ctx.drawImage(bgImg, 0, 0);
+
+      // 3. Draw Assets
+      // Assets coordinates (x, y, width, height) are in percentages (0-100) relative to the container.
+      // We map these percentages to the actual canvas pixel dimensions.
+      const assetPromises = assets.map(asset => {
+        return new Promise<void>((resolveAsset) => {
+          if (!asset.image || !asset.image.objectURL) {
+              resolveAsset();
+              return;
+          }
+
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = asset.image.objectURL;
+          
+          img.onload = () => {
+            ctx.save();
+            
+            // Calculate absolute pixels from percentages
+            const trueX = (asset.x / 100) * canvas.width;
+            const trueY = (asset.y / 100) * canvas.height;
+            const trueW = (asset.width / 100) * canvas.width;
+            const trueH = (asset.height / 100) * canvas.height;
+
+            // Handle Rotation
+            // Translate to center of the object to rotate, then draw centered
+            const centerX = trueX + trueW / 2;
+            const centerY = trueY + trueH / 2;
+
+            ctx.translate(centerX, centerY);
+            if (asset.rotation) {
+                ctx.rotate((asset.rotation * Math.PI) / 180);
+            }
+            
+            // Draw image centered at (0,0) relative to the translation
+            ctx.drawImage(img, -trueW / 2, -trueH / 2, trueW, trueH);
+            
+            ctx.restore();
+            resolveAsset();
+          };
+          
+          img.onerror = () => resolveAsset(); // Skip error assets but continue
+        });
+      });
+
+      await Promise.all(assetPromises);
+      
+      // 4. Export as Base64
+      // Use standard JPEG format for Gemini API
+      const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+      const base64 = dataURL.split(',')[1];
+      resolve({ base64, mimeType: 'image/jpeg' });
+    };
+
+    bgImg.onerror = (e) => reject(e);
+  });
+};
+
 type IdeaStep = 'UPLOAD' | 'STRUCTURE_RESULT' | 'DECOR_SETUP' | 'FINAL_RESULT';
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se';
 
@@ -304,11 +387,8 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
         if (resizingState.handle.includes('n')) newY = initialRect.y + (initialRect.h - newH);
         
         // --- CLAMPING TO BOUNDARIES (0-100%) ---
-        // Ensure width/height don't exceed 100%
         newW = Math.min(newW, 100);
         newH = Math.min(newH, 100);
-        
-        // Ensure Position doesn't go below 0 or above 100-size
         newX = Math.max(0, Math.min(newX, 100 - newW));
         newY = Math.max(0, Math.min(newY, 100 - newH));
 
@@ -398,15 +478,24 @@ export const IdeaGenerator: React.FC<IdeaGeneratorProps> = ({ state, onStateChan
       return;
     }
     setIsProcessing(true);
-    setProcessStatus('Đang ghép đồ vào khung sườn (Bước 2)...');
+    setProcessStatus('Đang xử lý ảnh ghép và render ánh sáng (Bước 2)...');
+    
     try {
-        if (onDeductCredits) await onDeductCredits(4 * numberOfImages, `Idea Decor x${numberOfImages}`);
-        const splitDataURI = (uri: string) => {
-            const parts = uri.split(';base64,');
-            return { mimeType: parts[0].replace('data:', ''), base64: parts[1] };
-        };
-        const structureData = splitDataURI(selectedStructure);
-        const images = await geminiService.generateIdeaDecor(structureData.base64, structureData.mimeType, assets, numberOfImages, (status) => setProcessStatus(status), true);
+        if (onDeductCredits) await onDeductCredits(4 * numberOfImages, `Idea Decor (Composite) x${numberOfImages}`);
+        
+        // 1. Create a composite image (Flatten background + assets)
+        setProcessStatus('Đang tạo ảnh composite từ layout...');
+        const composite = await createCompositeImage(selectedStructure, assets);
+        
+        // 2. Send the flattened image to AI for "rendering" (blending, lighting, shadows)
+        setProcessStatus('Đang render ánh sáng và bóng đổ...');
+        const images = await geminiService.generateIdeaDecor(
+            composite.base64, 
+            composite.mimeType, 
+            numberOfImages, 
+            (status) => setProcessStatus(status)
+        );
+        
         setFinalImages(images);
         setStep('FINAL_RESULT');
     } catch (error) { console.error(error); alert('Lỗi ghép đồ.'); } 
