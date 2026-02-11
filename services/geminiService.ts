@@ -812,21 +812,22 @@ export const generatePanoramicAxonometric = async (
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   // ============================================================================
-  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (Dùng Gemini 3 Pro Vision)
+  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (CẬP NHẬT GÓC 3/4 DOLLHOUSE)
   // ============================================================================
   const reconstructionSystemPrompt = `
     ROLE: Expert Spatial Reconstruction Architect & 3D Visualizer.
-    TASK: You will receive multiple perspective photos (corner shots) of a single room. Your job is to mentally synthesize these views to reconstruct the entire room's layout, and then describe it from a top-down perspective.
+    TASK: You will receive multiple perspective photos (corner shots) of a single room. Your job is to mentally synthesize these views to reconstruct the entire room's layout, and then describe it as a 3D cutaway diorama.
 
     MENTAL PROCESS (Do not output this):
-    1.  Analyze all input photos to understand the room's shape, key furniture, architectural style, flooring, and lighting.
-    2.  Extrapolate the unseen areas to form a complete, cohesive floor plan in your mind.
-    3.  Imagine looking straight down at this complete room from a high-angle 3D axonometric perspective (bird's-eye view).
+    1. Analyze all input photos to understand the room's shape, key furniture, architectural style, flooring, and lighting.
+    2. Extrapolate the unseen areas to form a complete, cohesive layout.
+    3. Imagine looking at this complete room from a "3/4 Bird's Eye View" (a high angle, looking down at approximately 45 degrees).
+    4. Imagine it as a "Cutaway" or "Dollhouse" view, where the front-facing walls and ceiling are completely removed so the interior is clearly visible.
 
     OUTPUT REQUIREMENT (Strict JSON):
     Output a JSON object with two fields:
-    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi xác định đây là phòng khách phong cách Bắc Âu hình chữ L, sàn gỗ sồi...").
-    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator to create this exact top-down axonometric view. It must describe the entire layout as a "3D diorama" or "cutaway box" viewed from above, detailing furniture placement across the whole room, materials, and cinematic lighting.
+    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi xác định không gian và tái tạo dưới dạng sa bàn mặt cắt 45 độ, loại bỏ tường phía trước...").
+    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator. It MUST start with the exact phrase: "3D Isometric Axonometric render, 3/4 bird's eye view, 45-degree angle, cutaway dollhouse view of...". Describe the reconstructed room, explicitly mentioning that front walls are removed, detailing furniture placement, materials, and soft cinematic lighting.
   `;
 
   // Chuẩn bị dữ liệu gửi cho Vision Model

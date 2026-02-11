@@ -53,7 +53,7 @@ export const PanoramicAxoTool: React.FC<PanoramicAxoProps> = ({ state, onStateCh
         <div className="bg-theme-surface rounded-2xl p-6 border border-theme-gold/20 shadow-lg">
           <h2 className="text-xl font-serif text-theme-gold mb-2">Ảnh Góc Nhìn (Perspective)</h2>
           <p className="text-sm text-theme-text-sub mb-4">
-            Tải lên các góc chụp khác nhau của <b>cùng một căn phòng</b>. AI sẽ tự động tổng hợp để tạo góc nhìn toàn cảnh từ trên cao.
+            Tải lên các góc chụp khác nhau của <b>cùng một căn phòng</b>. AI sẽ tự động tổng hợp để tạo phối cảnh sa bàn mặt cắt (Dollhouse View) góc 45 độ.
           </p>
 
           {/* Grid hiển thị ảnh đã upload */}
@@ -89,7 +89,7 @@ export const PanoramicAxoTool: React.FC<PanoramicAxoProps> = ({ state, onStateCh
             className={`w-full py-4 mt-4 rounded-xl font-bold text-white transition-all transform shadow-lg flex items-center justify-center gap-2
               ${isLoading || perspectivePhotos.length === 0 ? 'bg-gray-600 cursor-not-allowed' : 'bg-gradient-to-r from-theme-gold to-yellow-600 hover:scale-[1.02] hover:shadow-gold/30'}`}
           >
-            {isLoading ? <Spinner /> : '🚀 TẠO TOÀN CẢNH 3D TỪ TRÊN CAO'}
+            {isLoading ? <Spinner /> : '🚀 TẠO SA BÀN 3D MẶT CẮT (DOLLHOUSE)'}
           </button>
           
           {error && <p className="text-red-400 text-sm mt-3 text-center bg-red-900/20 p-2 rounded-lg animate-pulse">{error}</p>}
@@ -113,7 +113,7 @@ export const PanoramicAxoTool: React.FC<PanoramicAxoProps> = ({ state, onStateCh
            <div className="relative w-full h-full flex items-center justify-center group">
              <img src={resultImage} alt="Panoramic Axonometric Result" className="max-h-full max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-500 group-hover:scale-[1.01]" />
              <div className="absolute bottom-4 right-4 bg-black/70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-md pointer-events-none">
-                 Top-down Axonometric View
+                 3/4 Cutaway Axonometric View
              </div>
            </div>
         ) : (
@@ -122,9 +122,9 @@ export const PanoramicAxoTool: React.FC<PanoramicAxoProps> = ({ state, onStateCh
                <svg className="w-24 h-24 text-theme-gold mb-6 animate-pulse-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                </svg>
-               <h3 className="text-2xl font-serif text-theme-text-main mb-3">Toàn Cảnh 3D (Top-down)</h3>
+               <h3 className="text-2xl font-serif text-theme-text-main mb-3">Sa Bàn Mặt Cắt 3D</h3>
                <p className="text-base text-theme-text-sub max-w-md leading-relaxed">
-                 Biến các bức ảnh chụp góc thông thường thành một bản vẽ phối cảnh trục đo nhìn từ trên cao. <br/>AI sẽ tự động tái tạo lại toàn bộ mặt bằng căn phòng.
+                 Biến các bức ảnh chụp góc thông thường thành một bản vẽ phối cảnh trục đo góc 45 độ.<br/>AI sẽ tự tạo không gian "nhà búp bê" (lược bỏ tường trước) để nhìn thấu bên trong.
                </p>
            </div>
         )}
