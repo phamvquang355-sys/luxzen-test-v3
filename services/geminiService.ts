@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { FileData, RenderOptions, Resolution, EditMode, ClickPoint, SketchStyle, IdeaAsset } from "../types"; 
 import { PHOTOGRAPHY_PRESETS, STRUCTURE_FIDELITY_PROMPT, REALISM_MODIFIERS } from "../constants";
