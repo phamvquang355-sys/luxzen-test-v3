@@ -609,7 +609,7 @@ export const generateIdeaStructure = async (
 
 /**
  * --- GIAI ĐOẠN 2: Sắp Đặt Decor (Pass 2 - Decoration) ---
- * UPDATED: Uses a pre-composited image from frontend and focuses on rendering blending.
+ * Updated: Uses a pre-composited image from frontend and focuses on rendering blending.
  */
 export const generateIdeaDecor = async (
   compositeImageBase64: string, // Changed from background + assets list
@@ -812,22 +812,22 @@ export const generatePanoramicAxonometric = async (
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   // ============================================================================
-  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (CẬP NHẬT GÓC 3/4 DOLLHOUSE)
+  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (CẬP NHẬT GÓC 45 ĐỘ BỎ MÁI)
   // ============================================================================
   const reconstructionSystemPrompt = `
     ROLE: Expert Spatial Reconstruction Architect & 3D Visualizer.
-    TASK: You will receive multiple perspective photos (corner shots) of a single room. Your job is to mentally synthesize these views to reconstruct the entire room's layout, and then describe it as a 3D cutaway diorama.
+    TASK: You will receive multiple perspective photos (corner shots) of a single room. Your job is to mentally synthesize these views to reconstruct the entire room's layout, and then describe it as a 3D isometric render.
 
     MENTAL PROCESS (Do not output this):
     1. Analyze all input photos to understand the room's shape, key furniture, architectural style, flooring, and lighting.
     2. Extrapolate the unseen areas to form a complete, cohesive layout.
-    3. Imagine looking at this complete room from a "3/4 Bird's Eye View" (a high angle, looking down at approximately 45 degrees).
-    4. Imagine it as a "Cutaway" or "Dollhouse" view, where the front-facing walls and ceiling are completely removed so the interior is clearly visible.
+    3. Imagine looking at this complete room from a "3/4 Bird's Eye View" (a high angle, looking down at exactly 45 degrees).
+    4. Imagine the roof and ceiling are completely removed ("roofless" or "open-top" view), and any front-facing walls that block the view are lowered or cut away so the entire interior layout is perfectly visible from above.
 
     OUTPUT REQUIREMENT (Strict JSON):
     Output a JSON object with two fields:
-    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi xác định không gian và tái tạo dưới dạng sa bàn mặt cắt 45 độ, loại bỏ tường phía trước...").
-    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator. It MUST start with the exact phrase: "3D Isometric Axonometric render, 3/4 bird's eye view, 45-degree angle, cutaway dollhouse view of...". Describe the reconstructed room, explicitly mentioning that front walls are removed, detailing furniture placement, materials, and soft cinematic lighting.
+    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi đã tái tạo không gian tổng thể dưới dạng sa bàn 3D góc 45 độ, loại bỏ phần mái để lộ toàn cảnh nội thất...").
+    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator. It MUST start with the exact phrase: "3D Isometric Axonometric render, 45-degree high angle bird's eye view, roofless open-top view of...". Describe the reconstructed room, explicitly mentioning that the roof is removed to reveal the full interior, detailing the furniture placement, materials, clean walls, and soft realistic lighting.
   `;
 
   // Chuẩn bị dữ liệu gửi cho Vision Model

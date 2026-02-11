@@ -53,7 +53,7 @@ export const PanoramicAxoTool: React.FC<PanoramicAxoProps> = ({ state, onStateCh
         <div className="bg-theme-surface rounded-2xl p-6 border border-theme-gold/20 shadow-lg">
           <h2 className="text-xl font-serif text-theme-gold mb-2">Ảnh Góc Nhìn (Perspective)</h2>
           <p className="text-sm text-theme-text-sub mb-4">
-            Tải lên các góc chụp khác nhau của <b>cùng một căn phòng</b>. AI sẽ tự động tổng hợp để tạo phối cảnh sa bàn mặt cắt (Dollhouse View) góc 45 độ.
+            Tải lên các góc chụp khác nhau của <b>cùng một căn phòng</b>. AI sẽ tự động tổng hợp để tạo phối cảnh sa bàn 3D góc 45 độ (nhìn từ trên cao, bỏ lớp mái để thấy toàn cảnh).
           </p>
 
           {/* Grid hiển thị ảnh đã upload */}
@@ -89,7 +89,7 @@ export const PanoramicAxoTool: React.FC<PanoramicAxoProps> = ({ state, onStateCh
             className={`w-full py-4 mt-4 rounded-xl font-bold text-white transition-all transform shadow-lg flex items-center justify-center gap-2
               ${isLoading || perspectivePhotos.length === 0 ? 'bg-gray-600 cursor-not-allowed' : 'bg-gradient-to-r from-theme-gold to-yellow-600 hover:scale-[1.02] hover:shadow-gold/30'}`}
           >
-            {isLoading ? <Spinner /> : '🚀 TẠO SA BÀN 3D MẶT CẮT (DOLLHOUSE)'}
+            {isLoading ? <Spinner /> : '🚀 PHỐI CẢNH 3D'}
           </button>
           
           {error && <p className="text-red-400 text-sm mt-3 text-center bg-red-900/20 p-2 rounded-lg animate-pulse">{error}</p>}
@@ -113,7 +113,7 @@ export const PanoramicAxoTool: React.FC<PanoramicAxoProps> = ({ state, onStateCh
            <div className="relative w-full h-full flex items-center justify-center group">
              <img src={resultImage} alt="Panoramic Axonometric Result" className="max-h-full max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-500 group-hover:scale-[1.01]" />
              <div className="absolute bottom-4 right-4 bg-black/70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-md pointer-events-none">
-                 3/4 Cutaway Axonometric View
+                 45-Degree Roofless Isometric View
              </div>
            </div>
         ) : (
