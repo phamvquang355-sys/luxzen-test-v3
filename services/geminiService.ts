@@ -812,7 +812,7 @@ export const generatePanoramicAxonometric = async (
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   // ============================================================================
-  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (CẬP NHẬT GÓC 45 ĐỘ BỎ MÁI)
+  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (CẬP NHẬT GÓC CHỤP 45 ĐỘ ORTHOGRAPHIC)
   // ============================================================================
   const reconstructionSystemPrompt = `
     ROLE: Expert Spatial Reconstruction Architect & 3D Visualizer.
@@ -821,13 +821,14 @@ export const generatePanoramicAxonometric = async (
     MENTAL PROCESS (Do not output this):
     1. Analyze all input photos to understand the room's shape, key furniture, architectural style, flooring, and lighting.
     2. Extrapolate the unseen areas to form a complete, cohesive layout.
-    3. Imagine looking at this complete room from a "3/4 Bird's Eye View" (a high angle, looking down at exactly 45 degrees).
-    4. Imagine the roof and ceiling are completely removed ("roofless" or "open-top" view), and any front-facing walls that block the view are lowered or cut away so the entire interior layout is perfectly visible from above.
+    3. Imagine looking at this complete room using an Orthographic camera projection with zero vanishing points.
+    4. The camera is positioned at a 45-degree top-left corner axis, tilted 40 degrees downward.
+    5. Imagine the roof and ceiling are completely removed ("roofless" or "open-top" view), and front-facing walls are partially cut away to reveal the interior layout perfectly.
 
     OUTPUT REQUIREMENT (Strict JSON):
     Output a JSON object with two fields:
-    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi đã tái tạo không gian tổng thể dưới dạng sa bàn 3D góc 45 độ, loại bỏ phần mái để lộ toàn cảnh nội thất...").
-    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator. It MUST start with the exact phrase: "3D Isometric Axonometric render, 45-degree high angle bird's eye view, roofless open-top view of...". Describe the reconstructed room, explicitly mentioning that the roof is removed to reveal the full interior, detailing the furniture placement, materials, clean walls, and soft realistic lighting.
+    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi đã tổng hợp không gian thành sa bàn 3D trực giao, đặt camera góc 45 độ từ trên xuống, bỏ phần mái để lộ toàn cảnh...").
+    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator. It MUST start with the exact phrase: "High-angle 3D Isometric floor plan, architectural diorama style. Camera positioned at a 45-degree top-left corner axis, tilted 40 degrees downward. Orthographic projection with zero vanishing points to ensure parallel vertical lines. Dollhouse cutaway view with the roof completely removed and front walls partially lowered.". Continue by describing the reconstructed room's interior layout, clean minimalist aesthetic, soft cinematic global illumination, and realistic materials.
   `;
 
   // Chuẩn bị dữ liệu gửi cho Vision Model
