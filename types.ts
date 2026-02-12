@@ -215,7 +215,8 @@ export interface ViewOption {
   label: string;
   description: string;
   prompt_suffix: string;
-  strength: number;
+  strength?: number;
+  guidance?: string; // New field
 }
 
 export interface ViewSyncState {

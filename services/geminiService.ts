@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { FileData, RenderOptions, Resolution, EditMode, ClickPoint, SketchStyle, IdeaAsset, CornerPhotoWithLocation, ViewOption } from "../types"; 
 import { PHOTOGRAPHY_PRESETS, STRUCTURE_FIDELITY_PROMPT, REALISM_MODIFIERS } from "../constants";
@@ -9,6 +8,7 @@ const WEDDING_MATERIALS_KEYWORDS = {
   lighting: "cinematic volumetric lighting, warm amber ambient glow, professional stage spotlights, Tyndall effect"
 };
 
+// ... (keep all existing constants and helpers like resizeAndCompressImage, getEmpowermentPrompt, generatePromptFromImageAndText, generateRenderPrompt) ...
 // 1. Thêm hằng số định nghĩa quy tắc bố cục nghiêm ngặt
 const COMPOSITION_RULE_PROMPT = `
 === CAMERA & COMPOSITION RULES (NON-NEGOTIABLE) ===
@@ -44,10 +44,6 @@ OUTPUT:
 
 /**
  * Resize and compress an image to optimize for upload speed and API cost.
- * @param file The original file from input.
- * @param maxWidth Maximum width/height (whichever is larger) to scale down to (default 1024px).
- * @param quality Compression quality from 0.1 to 1.0 (default 0.8).
- * @returns A Promise that resolves with the base64 string of the compressed JPEG image (without prefix).
  */
 export const resizeAndCompressImage = (
   file: File, 
@@ -66,7 +62,6 @@ export const resizeAndCompressImage = (
         let width = img.width;
         let height = img.height;
 
-        // Calculate scaling factor to maintain aspect ratio
         if (width > maxWidth || height > maxWidth) {
           if (width > height) {
             height *= maxWidth / width;
@@ -85,7 +80,6 @@ export const resizeAndCompressImage = (
         }
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Export as base64 JPEG, removing the prefix for Gemini API inlineData
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
         resolve({ 
           base64: dataUrl.split(',')[1], 
@@ -100,45 +94,29 @@ export const resizeAndCompressImage = (
   });
 };
 
-/**
- * Creates an "AI Empowerment" prompt segment when user selects "Automatic" options.
- */
 export const getEmpowermentPrompt = (selections: RenderOptions): string => {
   const autoInstructions: string[] = [];
-
-  // 1. Nếu Category là Tự động: AI phải nhận diện hình khối để giữ nguyên công năng
   if (selections.category === 'none') {
     autoInstructions.push("- PHÂN TÍCH CẤU TRÚC GỐC: Nhận diện chính xác vị trí các vật thể hiện hữu. Tuyệt đối không thêm thắt các khối kiến trúc làm thay đổi bố cục gốc.");
   }
-
-  // 2. Nếu Style là Tự động: AI phải đọc "ngôn ngữ" thiết kế có sẵn
   if (selections.style === 'none') {
     autoInstructions.push("- TRÍCH XUẤT PHONG CÁCH: Phân tích các đường nét kiến trúc sẵn có trong ảnh (ví dụ: phào chỉ cổ điển, nét thẳng hiện đại) để render vật liệu đồng nhất với ngôn ngữ đó.");
   }
-
-  // 3. QUAN TRỌNG: Màu sắc bám sát gốc
   if (selections.colorPalette === 'none') {
     autoInstructions.push("- BẢO TỒN BẢNG MÀU (STRICT COLOR MATCH): Thực hiện lấy mẫu màu trực tiếp từ hình ảnh gốc. Nếu ảnh gốc có tông màu vàng kem và gỗ, bản render phải sử dụng chính xác mã màu đó. Tuyệt đối không tự ý thay đổi tone màu chủ đạo.");
   }
-
-  // 4. QUAN TRỌNG: Vật liệu bám sát gốc
   if (selections.surfaceMaterial === 'none') {
     autoInstructions.push("- NÂNG CẤP VẬT LIỆU THỰC TẾ (MATERIAL ENHANCEMENT): Xác định vật liệu hiện có (ví dụ: sàn gạch, vải lụa, kim loại). Thay vì thay thế, hãy tập trung vào việc làm nét (upscale) vân bề mặt, thêm độ phản chiếu (reflection) và độ bóng (glossiness) dựa trên bản chất vật liệu gốc.");
   }
-
-  // 5. QUAN TRỌNG: Vật liệu vải bám sát gốc (New)
   if (selections.textileMaterial === 'none') {
     autoInstructions.push("- TỐI ƯU VẬT LIỆU VẢI: Phân tích các loại vải hiện có (ví dụ: rèm, khăn trải bàn) và nâng cấp chúng lên chất liệu cao cấp (lụa óng ánh, nhung dày, voan mỏng) phù hợp với bối cảnh tổng thể.");
   }
-
-  // 6. QUAN TRỌNG: Màu sắc vải bám sát gốc
   if (selections.textileMaterial !== 'none' && selections.textileColor1 === 'none') {
     autoInstructions.push("- TỐI ƯU MÀU SẮC CHÍNH VẢI: AI sẽ chọn màu sắc chính hài hòa với vật liệu vải và bảng màu tổng thể.");
   }
   if (selections.textileMaterial !== 'none' && selections.textileColor2 === 'none') {
     autoInstructions.push("- TỐI ƯU MÀU SẮC PHỤ VẢI: AI sẽ chọn màu sắc phụ hài hòa với vật liệu vải và bảng màu tổng thể, tạo điểm nhấn tinh tế.");
   }
-
 
   if (autoInstructions.length === 0) return "";
 
@@ -151,7 +129,6 @@ MỤC TIÊU: Tạo ra bản render 8k siêu thực nhưng khi đặt cạnh ản
   `;
 };
 
-// ... (Existing helper functions generatePromptFromImageAndText, generateRenderPrompt, generateWeddingRender, getSupportedAspectRatio, generateHighQualityImage, generateAdvancedEdit, detectSimilarObjects, generateSketch - keep them as is) ...
 export const generatePromptFromImageAndText = async (
   image: FileData, 
   instruction: string
@@ -188,8 +165,6 @@ export const generateRenderPrompt = (
   presetKey: string
 ) => {
   const preset = PHOTOGRAPHY_PRESETS[presetKey as keyof typeof PHOTOGRAPHY_PRESETS] || PHOTOGRAPHY_PRESETS.CINEMATIC;
-  
-  // Logic xử lý Auto-Focus
   const focusPrompt = isAutoFocus 
     ? "AI AUTOMATIC FOCUS: Identify the most prominent decorative element and apply a sharp photographic focus to it, creating a natural depth of field."
     : "MANUAL FOCUS: Keep the sharpness consistent across the designated focal area.";
@@ -219,9 +194,6 @@ export const generateWeddingRender = async (
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const empowermentPrompt = getEmpowermentPrompt(options);
-  // Spatial Instructions are NOT used in the composite image approach of Idea Generator Step 2, 
-  // but might be used here for main render if assets exist. 
-  // Keeping it empty here as the function signature didn't change for this specific file.
   const spatialPrompt = ""; 
 
   let masterPrompt = "";
@@ -381,6 +353,7 @@ export const generateHighQualityImage = async (
   }
 };
 
+// ... (keep generateAdvancedEdit, detectSimilarObjects, generateSketch) ...
 export const generateAdvancedEdit = async (
   sourceImageBase64: string,
   sourceImageMimeType: string,
@@ -504,7 +477,6 @@ export const generateSketch = async (
   }
 };
 
-// ... (existing getSupportedAspectRatio function) ...
 const getSupportedAspectRatio = (width: number, height: number): "1:1" | "3:4" | "4:3" | "9:16" | "16:9" => {
   const ratio = width / height;
   if (ratio > 1.5) return "16:9"; 
@@ -514,10 +486,7 @@ const getSupportedAspectRatio = (width: number, height: number): "1:1" | "3:4" |
   return "1:1";
 };
 
-/**
- * --- GIAI ĐOẠN 1: Dựng Khung Sườn (Pass 1 - Structure) ---
- * Updated to support multiple variations
- */
+// ... (keep generateIdeaStructure, generateIdeaDecor, autoGenerateAxonometric, generateAxonometricView, generatePanoramicAxonometric) ...
 export const generateIdeaStructure = async (
   sketchImage: FileData,
   referenceStyle: FileData | null,
@@ -607,10 +576,6 @@ export const generateIdeaStructure = async (
   }
 };
 
-/**
- * --- GIAI ĐOẠN 2: Sắp Đặt Decor (Pass 2 - Decoration) ---
- * Updated: Uses a pre-composited image from frontend and focuses on rendering blending.
- */
 export const generateIdeaDecor = async (
   compositeImageBase64: string, // Changed from background + assets list
   compositeImageMimeType: string,
@@ -670,10 +635,6 @@ export const generateIdeaDecor = async (
   }
 };
 
-/**
- * Tính năng Toàn cảnh 3D (Auto-Analyze 3D Axonometric)
- * Quy trình 2 bước: Phân tích Vision -> Vẽ ảnh AI
- */
 export const autoGenerateAxonometric = async (
   floorPlan: FileData,
   cornerPhotos: FileData[]
@@ -753,10 +714,6 @@ export const autoGenerateAxonometric = async (
   }
 };
 
-/**
- * --- EVENT AXONOMETRIC (Alternative Single Image Workflow) ---
- * Supports the legacy or alternative EventAxonometric component.
- */
 export const generateAxonometricView = async (
   sourceImageBase64: string,
   sourceImageMimeType: string,
@@ -801,10 +758,6 @@ export const generateAxonometricView = async (
   }
 };
 
-/**
- * Tạo ảnh 3D Axonometric toàn cảnh từ trên cao dựa vào các ảnh góc phối cảnh và mặt bằng.
- * Sử dụng quy trình Composite Prompting để định vị không gian.
- */
 export const generatePanoramicAxonometric = async (
   floorPlan: FileData,
   perspectivePhotos: CornerPhotoWithLocation[]
@@ -881,8 +834,7 @@ Return ONLY the raw generated image, no markdown, no JSON.
 
 export const generateViewSync = async (
   sourceImage: FileData,
-  viewOption: ViewOption,
-  userPrompt: string
+  fullPrompt: string
 ): Promise<string> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing.");
@@ -890,23 +842,12 @@ export const generateViewSync = async (
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  const prompt = `
-    Context: Wedding and Event Design.
-    Task: Transform the input image into a specific perspective.
-    User Description: ${userPrompt || "Luxury wedding decoration, elegant style"}.
-    Target Perspective: ${viewOption.prompt_suffix}.
-    Requirements:
-    1. Strictly adhere to the '${viewOption.label}' camera angle.
-    2. Keep the structural elements of the room but enhance the decoration.
-    3. High quality, photorealistic 8k render.
-  `;
-
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-image-preview',
       contents: {
         parts: [
-          { text: prompt },
+          { text: fullPrompt },
           { inlineData: { mimeType: sourceImage.mimeType, data: sourceImage.base64 } }
         ]
       },

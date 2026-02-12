@@ -104,36 +104,31 @@ export const VIEW_ANGLES: ViewOption[] = [
   {
     id: 'eye-level',
     label: 'Ngang tầm mắt (Eye-Level)',
-    description: 'Góc nhìn thực tế của khách mời khi bước vào sảnh.',
-    prompt_suffix: "eye-level perspective, human view at 1.6m height, realistic photography, architectural visualization, depth of field, wide aperture",
-    strength: 0.6
+    description: 'Góc nhìn thực tế của khách mời.',
+    // Prompt giữ nguyên môi trường, chỉ thay đổi góc máy
+    prompt_suffix: "eye-level perspective taken at 1.6m height. STRICTLY MAINTAIN existing walls, windows, and floor materials. Do not change the room structure.",
+    guidance: "high"
+  },
+  {
+    id: 'top-down',
+    label: 'Mặt bằng - Bóc trần (Top-Down)',
+    description: 'Nhìn từ trên cao, loại bỏ trần để thấy bố trí.',
+    // Prompt đặc biệt để "bóc trần"
+    prompt_suffix: "direct top-down orthographic view, architectural floor plan style. CEILING REMOVED to show the interior layout. Cutaway view looking inside the room from above. Clear furniture arrangement. Flat lighting.",
+    guidance: "medium" // Giảm guidance để AI dám "xóa" trần nhà
   },
   {
     id: 'aisle-view',
     label: 'Dọc lối đi (Aisle View)',
-    description: 'Góc nhìn từ cuối đường dẫn lên sân khấu (dành cho Lễ cưới).',
-    prompt_suffix: "symmetrical view from the aisle looking towards the stage, leading lines, wedding photography composition, focus on the center stage",
-    strength: 0.7
-  },
-  {
-    id: 'top-down',
-    label: 'Mặt bằng bố trí (Top-Down)',
-    description: 'Góc nhìn từ trần xuống để kiểm tra layout bàn ghế.',
-    prompt_suffix: "direct top-down view, orthographic plan view, architectural floor plan, layout arrangement, flat lay, high angle looking straight down",
-    strength: 0.85
+    description: 'Góc nhìn từ cuối đường dẫn lên sân khấu.',
+    prompt_suffix: "symmetrical low-angle shot from the aisle center. Focus on the pathway leading to the stage. Preserve the hall's architecture/columns.",
+    guidance: "high"
   },
   {
     id: 'bird-eye',
     label: 'Góc chim bay (Bird-eye)',
-    description: 'Góc nhìn tổng thể 3/4 từ trên cao xuống.',
-    prompt_suffix: "isometric view, bird's eye view, high angle shot, overview of the entire event hall, 3d render style, volumetric lighting",
-    strength: 0.75
-  },
-  {
-    id: 'stage-close',
-    label: 'Cận cảnh sân khấu',
-    description: 'Tập trung vào chi tiết trang trí backdrop sân khấu.',
-    prompt_suffix: "close-up shot of the main stage, detailed backdrop decoration, floral arrangements focus, bokeh background, cinematic lighting",
-    strength: 0.55
+    description: 'Góc nhìn 3/4 từ trên cao bao quát.',
+    prompt_suffix: "isometric bird's eye view, high angle 45 degrees. Volumetric lighting. Show the entire event space context.",
+    guidance: "high"
   }
 ];

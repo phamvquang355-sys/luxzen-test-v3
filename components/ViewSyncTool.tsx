@@ -33,7 +33,48 @@ export const ViewSyncTool: React.FC<ViewSyncProps> = ({ state, onStateChange, us
 
       const selectedView = VIEW_ANGLES.find(v => v.id === selectedViewId) || VIEW_ANGLES[0];
       
-      const result = await geminiService.generateViewSync(sourceImage, selectedView, userPrompt);
+      // 1. Xây dựng Prompt "Cứng" để khóa không gian
+      let structuralConstraint = "";
+      
+      if (selectedView.id === 'top-down') {
+        // Logic riêng cho Top-down: Cho phép thay đổi cấu trúc trần nhà
+        structuralConstraint = `
+          CRITICAL INSTRUCTION: REMOVE THE CEILING/ROOF. 
+          Generate a cutaway view looking directly down into the space.
+          Show the floor layout, tables, and stage clearly.
+          Ignore the original ceiling structure.
+        `;
+      } else {
+        // Logic cho các góc khác: Bắt buộc giữ nguyên không gian
+        structuralConstraint = `
+          CRITICAL INSTRUCTION: PRESERVE THE ROOM GEOMETRY.
+          Do NOT change the walls, columns, windows, or floor material.
+          Only move the camera position to '${selectedView.label}'.
+          Keep the exact spatial context of the uploaded image.
+        `;
+      }
+
+      // 2. Ghép Prompt hoàn chỉnh
+      const finalPrompt = `
+        Role: Professional Architectural Visualizer.
+        Task: Re-render the uploaded event space from a new camera angle.
+        
+        [INPUT IMAGE ANALYSIS]
+        Analyze the uploaded image's architectural style and dimensions.
+
+        [TARGET VIEW]
+        ${selectedView.prompt_suffix}
+
+        [CONSTRAINTS]
+        ${structuralConstraint}
+
+        [USER DECORATION REQUEST]
+        ${userPrompt || "Keep current decoration style"}
+        
+        Output: Photorealistic 8K render.
+      `.trim();
+
+      const result = await geminiService.generateViewSync(sourceImage, finalPrompt);
       
       onStateChange({ resultImage: result });
     } catch (err) {
