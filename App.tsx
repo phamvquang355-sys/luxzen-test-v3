@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import { AppState, FileData, RenderOptions, UpscaleState, Tool, Resolution, AdvancedEditState, EditMode, SketchConverterState, SketchStyle, IdeaGeneratorState, AxonometricState, PanoramicAxoState } from './types';
-import { WEDDING_CATEGORIES, WEDDING_STYLES, COLOR_PALETTES, SURFACE_MATERIALS, TEXTILE_MATERIALS, TEXTILE_COLORS, PHOTOGRAPHY_PRESETS } from './constants';
+import { AppState, FileData, RenderOptions, UpscaleState, Tool, Resolution, AdvancedEditState, EditMode, SketchConverterState, SketchStyle, IdeaGeneratorState, AxonometricState, PanoramicAxoState, ViewSyncState } from './types';
+import { WEDDING_CATEGORIES, WEDDING_STYLES, COLOR_PALETTES, SURFACE_MATERIALS, TEXTILE_MATERIALS, TEXTILE_COLORS, PHOTOGRAPHY_PRESETS, VIEW_ANGLES } from './constants';
 import { generateWeddingRender } from './services/geminiService';
 import { OptionSelector } from './components/OptionSelector';
 import { RenderImageUpload } from './components/RenderImageUpload';
@@ -11,6 +12,7 @@ import { SketchConverter } from './components/SketchConverter';
 import { IdeaGenerator } from './components/IdeaGenerator';
 import { AxonometricTool } from './components/AxonometricTool';
 import { PanoramicAxoTool } from './components/PanoramicAxoTool';
+import { ViewSyncTool } from './components/ViewSyncTool';
 
 const App: React.FC = () => {
   const [activeTool, setActiveTool] = useState<Tool>(Tool.RENDER);
@@ -93,9 +95,20 @@ const App: React.FC = () => {
 
   // State for Panoramic Axonometric Tool (New)
   const [panoramicState, setPanoramicState] = useState<PanoramicAxoState>({
+    floorPlan: null,
     perspectivePhotos: [],
     resultImage: null,
     aiReasoning: null,
+    isLoading: false,
+    error: null,
+  });
+
+  // State for View Sync Tool (New)
+  const [viewSyncState, setViewSyncState] = useState<ViewSyncState>({
+    sourceImage: null,
+    resultImage: null,
+    selectedViewId: VIEW_ANGLES[0].id,
+    userPrompt: '',
     isLoading: false,
     error: null,
   });
@@ -237,9 +250,21 @@ const App: React.FC = () => {
 
   const resetPanoramicTab = () => {
     setPanoramicState({
+      floorPlan: null,
       perspectivePhotos: [],
       resultImage: null,
       aiReasoning: null,
+      isLoading: false,
+      error: null,
+    });
+  };
+
+  const resetViewSyncTab = () => {
+    setViewSyncState({
+      sourceImage: null,
+      resultImage: null,
+      selectedViewId: VIEW_ANGLES[0].id,
+      userPrompt: '',
       isLoading: false,
       error: null,
     });
@@ -331,9 +356,14 @@ const App: React.FC = () => {
                         icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                     },
                     {
-                        id: Tool.PANORAMIC_AXO, // Updated to new tool ID
+                        id: Tool.PANORAMIC_AXO, 
                         label: 'Toàn Cảnh 3D',
                         icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    },
+                    {
+                        id: Tool.VIEW_SYNC, // New Tool
+                        label: 'Đồng Bộ View',
+                        icon: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                     },
                     { 
                         id: Tool.IDEA_GENERATOR, 
@@ -657,6 +687,16 @@ const App: React.FC = () => {
             userCredits={userCredits}
             onDeductCredits={handleDeductCredits}
             onReset={resetAxoTab}
+          />
+        )}
+
+        {activeTool === Tool.VIEW_SYNC && (
+          <ViewSyncTool 
+            state={viewSyncState}
+            onStateChange={(newState) => setViewSyncState(prev => ({ ...prev, ...newState }))}
+            userCredits={userCredits}
+            onDeductCredits={handleDeductCredits}
+            onReset={resetViewSyncTab}
           />
         )}
 

@@ -1,5 +1,6 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
-import { FileData, RenderOptions, Resolution, EditMode, ClickPoint, SketchStyle, IdeaAsset } from "../types"; 
+import { FileData, RenderOptions, Resolution, EditMode, ClickPoint, SketchStyle, IdeaAsset, CornerPhotoWithLocation, ViewOption } from "../types"; 
 import { PHOTOGRAPHY_PRESETS, STRUCTURE_FIDELITY_PROMPT, REALISM_MODIFIERS } from "../constants";
 
 const WEDDING_MATERIALS_KEYWORDS = {
@@ -801,71 +802,65 @@ export const generateAxonometricView = async (
 };
 
 /**
- * Tạo ảnh 3D Axonometric toàn cảnh từ trên cao chỉ dựa vào các ảnh góc phối cảnh.
- * Sử dụng quy trình 2 bước: Vision phân tích & tái tạo -> Sinh ảnh.
+ * Tạo ảnh 3D Axonometric toàn cảnh từ trên cao dựa vào các ảnh góc phối cảnh và mặt bằng.
+ * Sử dụng quy trình Composite Prompting để định vị không gian.
  */
 export const generatePanoramicAxonometric = async (
-  perspectivePhotos: FileData[]
+  floorPlan: FileData,
+  perspectivePhotos: CornerPhotoWithLocation[]
 ): Promise<{ resultImage: string; aiReasoning: string }> => {
   if (!process.env.API_KEY) throw new Error("API Key is missing.");
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+  // Generate Spatial Instructions from mapped photos
+  const spatialInstructions = perspectivePhotos.map((p, idx) => {
+        let xPos = p.x < 33 ? "Left" : p.x > 66 ? "Right" : "Center (Horizontal)";
+        let yPos = p.y < 33 ? "Top" : p.y > 66 ? "Bottom" : "Center (Vertical)";
+        return `- Reference Photo ${idx + 2} is located at [${yPos}, ${xPos}] on the floor plan, camera facing ${p.rotation} degrees.`;
+    }).join('\n');
+
   // ============================================================================
-  // BƯỚC 1: TÁI TẠO KHÔNG GIAN & VIẾT PROMPT (CẬP NHẬT GÓC CHỤP 45 ĐỘ ORTHOGRAPHIC)
+  // COMPOSITE PROMPTING SYSTEM
   // ============================================================================
-  const reconstructionSystemPrompt = `
-    ROLE: Expert Spatial Reconstruction Architect & 3D Visualizer.
-    TASK: You will receive multiple perspective photos (corner shots) of a single room. Your job is to mentally synthesize these views to reconstruct the entire room's layout, and then describe it as a 3D isometric render.
+  const SYSTEM_PROMPT = `
+ROLE: You are an Expert Architectural Visualizer.
+TASK: Reconstruct a cohesive 3D Axonometric cutaway view based on a Master Floor Plan and localized corner photos.
 
-    MENTAL PROCESS (Do not output this):
-    1. Analyze all input photos to understand the room's shape, key furniture, architectural style, flooring, and lighting.
-    2. Extrapolate the unseen areas to form a complete, cohesive layout.
-    3. Imagine looking at this complete room using an Orthographic camera projection with zero vanishing points.
-    4. The camera is positioned at a 45-degree top-left corner axis, tilted 40 degrees downward.
-    5. Imagine the roof and ceiling are completely removed ("roofless" or "open-top" view), and front-facing walls are partially cut away to reveal the interior layout perfectly.
+INPUT DATA:
+- IMAGE 1 is the STRICT Master Floor Plan. You MUST follow this exact geometric layout and room boundaries. Do not invent a square room if the floor plan is rectangular.
+- Subsequent images (IMAGE 2, 3...) are interior reference photos from different mapped locations.
 
-    OUTPUT REQUIREMENT (Strict JSON):
-    Output a JSON object with two fields:
-    1. "reasoning": A short summary (in Vietnamese) of how you reconstructed the scene (e.g., "Từ các ảnh góc, tôi đã tổng hợp không gian thành sa bàn 3D trực giao, đặt camera góc 45 độ từ trên xuống, bỏ phần mái để lộ toàn cảnh...").
-    2. "imageGenPrompt": A highly detailed, descriptive English prompt for an image generator. It MUST start with the exact phrase: "High-angle 3D Isometric floor plan, architectural diorama style. Camera positioned at a 45-degree top-left corner axis, tilted 40 degrees downward. Orthographic projection with zero vanishing points to ensure parallel vertical lines. Dollhouse cutaway view with the roof completely removed and front walls partially lowered.". Continue by describing the reconstructed room's interior layout, clean minimalist aesthetic, soft cinematic global illumination, and realistic materials.
-  `;
+USER MAPPING (CRITICAL):
+The user has mapped the locations of the reference photos on the floor plan as follows:
+${spatialInstructions}
 
-  // Chuẩn bị dữ liệu gửi cho Vision Model
-  const contents: any[] = [{ text: reconstructionSystemPrompt }];
-  perspectivePhotos.forEach((photo, index) => {
-    contents.push({ text: `--- INPUT PERSPECTIVE PHOTO ${index + 1} ---` });
-    contents.push({ inlineData: { mimeType: photo.mimeType, data: photo.base64 } });
+INSTRUCTIONS:
+1. OVERALL SHAPE: Form the base 3D walls and floor strictly using Image 1's proportions.
+2. TEXTURE MAPPING: Extract the decor, furniture, wall textures, and colors from each reference image and apply them ONLY to the specific section of the 3D room dictated by the User Mapping.
+3. BLENDING: Seamlessly merge these localized zones into ONE cohesive room.
+4. VIEW: Render as a 45-degree top-down Isometric/Axonometric cutaway box, floating on a white studio background. Show the thickness of the cut walls.
+
+Return ONLY the raw generated image, no markdown, no JSON.
+`;
+
+  // Prepare contents array
+  const contents: any[] = [
+    { text: SYSTEM_PROMPT },
+    { inlineData: { mimeType: floorPlan.mimeType, data: floorPlan.base64 } } // Image 1 (Floor Plan)
+  ];
+  
+  // Add mapped photos
+  perspectivePhotos.forEach(p => {
+    contents.push({ inlineData: { mimeType: p.fileData.mimeType, data: p.fileData.base64 } });
   });
 
   try {
-    // Gọi Model Vision (Sử dụng Gemini 3 Pro)
-    const reconstructionResponse = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview', // Model này cần mạnh về Vision
-      contents: [{ role: 'user', parts: contents }],
-      config: { responseMimeType: "application/json" }
-    });
-
-    const responseText = reconstructionResponse.text || "{}";
-    let parsedData;
-    try {
-        parsedData = JSON.parse(responseText);
-    } catch (e) {
-        throw new Error("AI không trả về đúng định dạng JSON để tái tạo không gian.");
-    }
-    
-    const { imageGenPrompt, reasoning } = parsedData;
-
-    if (!imageGenPrompt) throw new Error("AI không thể tái tạo không gian từ các ảnh cung cấp.");
-
-    // ============================================================================
-    // BƯỚC 2: SINH ẢNH TỪ PROMPT ĐÃ TÁI TẠO
-    // ============================================================================
     const finalImageResponse = await ai.models.generateContent({
       model: 'gemini-3-pro-image-preview',
-      contents: [{ text: `Generate an image based on this description: ${imageGenPrompt}` }]
+      contents: contents
     });
     
-    // Xử lý kết quả trả về
+    // Process response
     const base64Image = finalImageResponse.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
     const mimeType = finalImageResponse.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.mimeType || 'image/jpeg';
 
@@ -875,11 +870,64 @@ export const generatePanoramicAxonometric = async (
 
     return {
       resultImage: `data:${mimeType};base64,${base64Image}`,
-      aiReasoning: reasoning
+      aiReasoning: "Generated based on spatial mapping." // Placeholder as reasoning is implicit in visual output now
     };
 
   } catch (error) {
     console.error("Panoramic Gen Error:", error);
+    throw error;
+  }
+};
+
+export const generateViewSync = async (
+  sourceImage: FileData,
+  viewOption: ViewOption,
+  userPrompt: string
+): Promise<string> => {
+  if (!process.env.API_KEY) {
+    throw new Error("API Key is missing.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const prompt = `
+    Context: Wedding and Event Design.
+    Task: Transform the input image into a specific perspective.
+    User Description: ${userPrompt || "Luxury wedding decoration, elegant style"}.
+    Target Perspective: ${viewOption.prompt_suffix}.
+    Requirements:
+    1. Strictly adhere to the '${viewOption.label}' camera angle.
+    2. Keep the structural elements of the room but enhance the decoration.
+    3. High quality, photorealistic 8k render.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-pro-image-preview',
+      contents: {
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: sourceImage.mimeType, data: sourceImage.base64 } }
+        ]
+      },
+      config: {
+        systemInstruction: "You are an Expert Architectural Visualizer specializing in perspective transformation."
+      }
+    });
+
+    if (response.candidates && response.candidates.length > 0) {
+      const content = response.candidates[0].content;
+      if (content && content.parts) {
+        for (const part of content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          }
+        }
+      }
+    }
+    throw new Error("No image generated.");
+  } catch (error) {
+    console.error("View Sync Generation Error:", error);
     throw error;
   }
 };

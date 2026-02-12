@@ -1,4 +1,5 @@
-import { OptionItem } from './types';
+
+import { OptionItem, ViewOption } from './types';
 
 export const WEDDING_CATEGORIES: OptionItem[] = [
   { value: 'none', label: 'Tự động (AI đề xuất)', description: 'AI tự phân tích ảnh để xác định hạng mục (Sân khấu, Cổng chào, v.v.)' },
@@ -98,3 +99,41 @@ export const STRUCTURE_FIDELITY_PROMPT =
 
 export const REALISM_MODIFIERS = 
   "photorealistic, 8k resolution, ray-tracing, unreal engine 5 style, highly detailed silk and floral textures, professional color grading, shot on Sony A7R IV";
+
+export const VIEW_ANGLES: ViewOption[] = [
+  {
+    id: 'eye-level',
+    label: 'Ngang tầm mắt (Eye-Level)',
+    description: 'Góc nhìn thực tế của khách mời khi bước vào sảnh.',
+    prompt_suffix: "eye-level perspective, human view at 1.6m height, realistic photography, architectural visualization, depth of field, wide aperture",
+    strength: 0.6
+  },
+  {
+    id: 'aisle-view',
+    label: 'Dọc lối đi (Aisle View)',
+    description: 'Góc nhìn từ cuối đường dẫn lên sân khấu (dành cho Lễ cưới).',
+    prompt_suffix: "symmetrical view from the aisle looking towards the stage, leading lines, wedding photography composition, focus on the center stage",
+    strength: 0.7
+  },
+  {
+    id: 'top-down',
+    label: 'Mặt bằng bố trí (Top-Down)',
+    description: 'Góc nhìn từ trần xuống để kiểm tra layout bàn ghế.',
+    prompt_suffix: "direct top-down view, orthographic plan view, architectural floor plan, layout arrangement, flat lay, high angle looking straight down",
+    strength: 0.85
+  },
+  {
+    id: 'bird-eye',
+    label: 'Góc chim bay (Bird-eye)',
+    description: 'Góc nhìn tổng thể 3/4 từ trên cao xuống.',
+    prompt_suffix: "isometric view, bird's eye view, high angle shot, overview of the entire event hall, 3d render style, volumetric lighting",
+    strength: 0.75
+  },
+  {
+    id: 'stage-close',
+    label: 'Cận cảnh sân khấu',
+    description: 'Tập trung vào chi tiết trang trí backdrop sân khấu.',
+    prompt_suffix: "close-up shot of the main stage, detailed backdrop decoration, floral arrangements focus, bokeh background, cinematic lighting",
+    strength: 0.55
+  }
+];

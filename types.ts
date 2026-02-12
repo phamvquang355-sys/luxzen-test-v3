@@ -56,7 +56,8 @@ export enum Tool {
   IDEA_GENERATOR = 'idea_generator',
   UPSCALE = 'upscale',
   ADVANCED_EDIT = 'advanced_edit',
-  SKETCH_CONVERTER = 'sketch_converter'
+  SKETCH_CONVERTER = 'sketch_converter',
+  VIEW_SYNC = 'view_sync' // NEW: Đồng bộ View
 }
 
 export type Resolution = '1K' | '2K' | '4K';
@@ -166,11 +167,20 @@ export interface AxonometricProps {
   onReset: () => void;
 }
 
-// NEW: Panoramic Axonometric Types (New Tool)
+// Thêm interface mới lưu trữ tọa độ Không gian
+export interface CornerPhotoWithLocation {
+  fileData: FileData;
+  x: number; // Tọa độ X trên mặt bằng (%)
+  y: number; // Tọa độ Y trên mặt bằng (%)
+  rotation: number; // Hướng nhìn Camera (độ)
+}
+
+// Cập nhật PanoramicAxoState
 export interface PanoramicAxoState {
-  perspectivePhotos: FileData[]; // Mảng các ảnh chụp/render góc
-  resultImage: string | null;    // Kết quả ảnh toàn cảnh từ trên cao
-  aiReasoning: string | null;    // (Tùy chọn) Để hiển thị AI đã hiểu không gian như thế nào
+  floorPlan: FileData | null; // MỚI: Ảnh Mặt Bằng
+  perspectivePhotos: CornerPhotoWithLocation[]; // THAY ĐỔI: Chuyển từ mảng FileData sang mảng có tọa độ
+  resultImage: string | null;
+  aiReasoning: string | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -197,6 +207,32 @@ export interface EventAxonometricProps {
   onStateChange: (newState: Partial<EventAxonometricState>) => void;
   userCredits: number;
   onDeductCredits?: (cost: number, description: string) => Promise<void>;
+}
+
+// New ViewSync Types
+export interface ViewOption {
+  id: string;
+  label: string;
+  description: string;
+  prompt_suffix: string;
+  strength: number;
+}
+
+export interface ViewSyncState {
+  sourceImage: FileData | null;
+  resultImage: string | null;
+  selectedViewId: string;
+  userPrompt: string;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface ViewSyncProps {
+  state: ViewSyncState;
+  onStateChange: (newState: Partial<ViewSyncState>) => void;
+  userCredits: number;
+  onDeductCredits?: (cost: number, description: string) => Promise<void>;
+  onReset: () => void;
 }
 
 
