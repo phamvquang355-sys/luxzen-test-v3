@@ -57,7 +57,8 @@ export enum Tool {
   UPSCALE = 'upscale',
   ADVANCED_EDIT = 'advanced_edit',
   SKETCH_CONVERTER = 'sketch_converter',
-  VIEW_SYNC = 'view_sync' // NEW: Đồng bộ View
+  VIEW_SYNC = 'view_sync',
+  VIDEO_GENERATOR = 'video_generator' // NEW: Tạo Phim
 }
 
 export type Resolution = '1K' | '2K' | '4K';
@@ -234,6 +235,22 @@ export interface ViewSyncProps {
   userCredits: number;
   onDeductCredits?: (cost: number, description: string) => Promise<void>;
   onReset: () => void;
+}
+
+export interface VideoGeneratorState {
+  originalImage: FileData | null;
+  videoResult: string | null;
+  selectedShotId: string;
+  userPrompt: string;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface VideoGeneratorProps {
+  state: VideoGeneratorState;
+  onStateChange: (newState: Partial<VideoGeneratorState>) => void;
+  userCredits: number;
+  onDeductCredits: (amount: number) => void;
 }
 
 

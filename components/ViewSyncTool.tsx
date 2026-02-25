@@ -127,8 +127,8 @@ export const ViewSyncTool: React.FC<ViewSyncProps> = ({ state, onStateChange, us
               </label>
               <div className="aspect-[4/3] w-full bg-theme-base rounded-lg overflow-hidden border border-theme-gold/20">
                 <ImageUpload
-                  onImageUpload={handleSourceUpload}
-                  currentImage={sourceImage?.objectURL || null}
+                  onFileSelect={handleSourceUpload}
+                  previewUrl={sourceImage?.objectURL || null}
                   placeholder="Kéo thả hoặc nhấp để tải ảnh lên"
                 />
               </div>

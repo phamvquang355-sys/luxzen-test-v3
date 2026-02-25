@@ -130,5 +130,29 @@ export const VIEW_ANGLES: ViewOption[] = [
     description: 'Góc nhìn 3/4 từ trên cao bao quát.',
     prompt_suffix: "isometric bird's eye view, high angle 45 degrees. Volumetric lighting. Show the entire event space context.",
     guidance: "high"
+  },
+  {
+    id: 'front-stage',
+    label: 'Chính diện Sân khấu (Front Stage)',
+    description: 'Góc nhìn trực diện không điểm tụ để kiểm tra tỷ lệ chi tiết backdrop.',
+    prompt_suffix: "straight direct front elevation view of the main stage backdrop, completely symmetrical, flat orthographic-like perspective, highly detailed decoration focus, no camera distortion."
+  },
+  {
+    id: 'ceiling-focus',
+    label: 'Góc ngước trần (Ceiling Focus)',
+    description: 'Góc máy hơi ngước lên để khoe trọn vẹn hoa thả trần và đèn chùm.',
+    prompt_suffix: "low angle shot looking slightly up, emphasizing elaborate ceiling decorations, hanging floral installations, luxurious chandeliers, grand atmosphere, majestic scale."
+  },
+  {
+    id: 'welcome-area',
+    label: 'Khu vực đón khách (Welcome Area)',
+    description: 'Tập trung vào cổng hoa và bàn Gallery ngay lối vào.',
+    prompt_suffix: "entrance perspective view, focusing on the welcome area, floral arch gate, reception gallery table in the foreground, blurred event hall in the background, inviting atmosphere."
+  },
+  {
+    id: 'centerpiece-detail',
+    label: 'Cận cảnh Bàn tiệc (Detail/Macro)',
+    description: 'Góc chụp xóa phông tập trung vào chi tiết hoa, nến và setup bàn ăn.',
+    prompt_suffix: "macro photography, close-up shot of a lavish table centerpiece, detailed floral arrangements, elegant tableware, crystal glasses, lit candles, beautiful bokeh background, shallow depth of field."
   }
 ];
