@@ -758,6 +758,8 @@ export const generateAxonometricView = async (
   }
 };
 
+
+
 export const generatePanoramicAxonometric = async (
   floorPlan: FileData,
   perspectivePhotos: CornerPhotoWithLocation[]
