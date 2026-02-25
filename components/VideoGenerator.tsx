@@ -203,7 +203,25 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ state, onStateCh
               
               {error && (
                 <div className="mt-3 p-3 bg-red-900/20 text-red-400 text-sm rounded-lg border border-red-500/30">
-                  {error}
+                  <p>{error}</p>
+                  {error.includes("403") && (
+                    <button
+                      onClick={async () => {
+                        if (window.aistudio?.openSelectKey) {
+                          try {
+                            await window.aistudio.openSelectKey();
+                            // Clear error after selection attempt
+                            onStateChange({ error: null });
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                      }}
+                      className="mt-2 px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 text-xs rounded border border-red-500/30 transition-colors"
+                    >
+                      Chọn lại API Key (Dự án có Billing)
+                    </button>
+                  )}
                 </div>
               )}
             </div>

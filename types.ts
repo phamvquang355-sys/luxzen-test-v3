@@ -253,6 +253,15 @@ export interface VideoGeneratorProps {
   onDeductCredits: (amount: number) => void;
 }
 
+declare global {
+  interface Window {
+    aistudio?: {
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
+    };
+  }
+}
+
 
 // Annotation Types for AnnotationCanvas
 export type AnnotationTool = 'brush' | 'arrow' | 'text';
