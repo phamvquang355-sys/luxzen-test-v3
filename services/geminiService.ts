@@ -187,7 +187,7 @@ export const generateRenderPrompt = (
 export const generateWeddingRender = async (
   sourceImage: FileData,
   options: RenderOptions
-): Promise<string> => {
+): Promise<string[]> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing. Please set REACT_APP_GEMINI_API_KEY or process.env.API_KEY");
   }
@@ -275,28 +275,37 @@ export const generateWeddingRender = async (
   }
 
   try {
-    const renderResponse = await ai.models.generateContent({
-      model: 'gemini-3-pro-image-preview',
-      contents: {
-        parts: [
-          { text: masterPrompt },
-          { inlineData: { mimeType: sourceImage.mimeType, data: sourceImage.base64 } }
-        ]
-      },
-      config: {
-        systemInstruction: "You are a specialized 3D Wedding Visualizer. Transform the input sketch into a photorealistic render following the prompt exactly."
-      }
-    });
+    const generatedImages: string[] = [];
+    const count = options.imageCount || 1;
 
-    if (renderResponse.candidates && renderResponse.candidates.length > 0) {
-        const content = renderResponse.candidates[0].content;
-        if (content && content.parts) {
-            for (const part of content.parts) {
-                if (part.inlineData && part.inlineData.data) {
-                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    for (let i = 0; i < count; i++) {
+        const renderResponse = await ai.models.generateContent({
+          model: 'gemini-3-pro-image-preview',
+          contents: {
+            parts: [
+              { text: masterPrompt },
+              { inlineData: { mimeType: sourceImage.mimeType, data: sourceImage.base64 } }
+            ]
+          },
+          config: {
+            systemInstruction: "You are a specialized 3D Wedding Visualizer. Transform the input sketch into a photorealistic render following the prompt exactly."
+          }
+        });
+
+        if (renderResponse.candidates && renderResponse.candidates.length > 0) {
+            const content = renderResponse.candidates[0].content;
+            if (content && content.parts) {
+                for (const part of content.parts) {
+                    if (part.inlineData && part.inlineData.data) {
+                        generatedImages.push(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`);
+                    }
                 }
             }
         }
+    }
+
+    if (generatedImages.length > 0) {
+        return generatedImages;
     }
     throw new Error("No image generated in the response.");
   } catch (error) {

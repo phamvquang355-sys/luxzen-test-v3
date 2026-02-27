@@ -40,6 +40,7 @@ export interface RenderOptions {
   isAutoFocus: boolean; // New: AI Photography Auto-Focus
   cameraPreset: string; // New: Photography Lens Preset Key
   assets?: IdeaAsset[]; // New: List of spatial assets
+  imageCount: number; // New: Number of images to generate
 }
 
 export enum AppState {
@@ -250,7 +251,7 @@ export interface VideoGeneratorProps {
   state: VideoGeneratorState;
   onStateChange: (newState: Partial<VideoGeneratorState>) => void;
   userCredits: number;
-  onDeductCredits: (amount: number) => void;
+  onDeductCredits?: (cost: number, description: string) => Promise<void>;
 }
 
 declare global {

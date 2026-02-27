@@ -24,7 +24,10 @@ const App: React.FC = () => {
   const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
   const [isPhotoSettingsOpen, setIsPhotoSettingsOpen] = useState<boolean>(false); // New State for Photo Toggle
   const [sourceImage, setSourceImage] = useState<FileData | null>(null);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]); // Changed to array
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0); // New state for selected image
+  const generatedImage = generatedImages.length > 0 ? generatedImages[selectedImageIndex] : null; // Derived state
+
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [renderOptions, setRenderOptions] = useState<RenderOptions>({
     category: WEDDING_CATEGORIES[0].value,
@@ -37,7 +40,8 @@ const App: React.FC = () => {
     additionalPrompt: '',
     hiddenAIContext: '',
     isAutoFocus: true,
-    cameraPreset: 'CINEMATIC'
+    cameraPreset: 'CINEMATIC',
+    imageCount: 1 // Default image count
   });
 
   // State for Upscale tab
@@ -157,8 +161,9 @@ const App: React.FC = () => {
 
     setAppState(AppState.GENERATING);
     try {
-      const resultUrl = await generateWeddingRender(sourceImage, renderOptions);
-      setGeneratedImage(resultUrl);
+      const resultUrls = await generateWeddingRender(sourceImage, renderOptions);
+      setGeneratedImages(resultUrls);
+      setSelectedImageIndex(0);
       setAppState(AppState.SUCCESS);
     } catch (error) {
       console.error(error);
@@ -180,7 +185,7 @@ const App: React.FC = () => {
 
   const handleSourceImageUpload = (data: FileData) => {
     setSourceImage(data);
-    setGeneratedImage(null); 
+    setGeneratedImages([]); 
     setAppState(AppState.IDLE); 
   };
 
@@ -604,7 +609,30 @@ const App: React.FC = () => {
                       />
                   </div>
 
-                  {/* 4. Action Button: Primary (text-sm, py-3, font-normal) */}
+                  {/* 4. Image Count Selector */}
+                  <div className="flex items-center justify-between bg-theme-base p-3 rounded-xl border border-theme-gold/20">
+                      <div className="flex flex-col">
+                          <span className="text-sm font-normal text-theme-text-main uppercase tracking-wide">Số Lượng Ảnh</span>
+                          <span className="text-[11px] text-theme-text-sub font-normal">Chọn số lượng phương án (1-4)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                          {[1, 2, 3, 4].map((count) => (
+                              <button
+                                  key={count}
+                                  onClick={() => handleOptionChange('imageCount', count)}
+                                  className={`w-8 h-8 rounded-full text-xs font-medium transition-all flex items-center justify-center border
+                                      ${renderOptions.imageCount === count
+                                          ? 'bg-theme-gold text-theme-base border-theme-gold shadow-md'
+                                          : 'bg-theme-surface2 text-theme-text-sub border-theme-gold/10 hover:border-theme-gold/50 hover:text-theme-gold'}
+                                  `}
+                              >
+                                  {count}
+                              </button>
+                          ))}
+                      </div>
+                  </div>
+
+                  {/* 5. Action Button: Primary (text-sm, py-3, font-normal) */}
                   <button
                     onClick={handleGenerate}
                     disabled={!sourceImage || appState === AppState.GENERATING}
@@ -661,11 +689,30 @@ const App: React.FC = () => {
 
               {appState === AppState.SUCCESS && generatedImage && sourceImage?.objectURL && (
                   <div className="h-full flex flex-col gap-4">
-                    <div className="flex-1 min-h-0 bg-black/20 rounded-xl overflow-hidden border border-theme-gold/10">
+                    <div className="flex-1 min-h-0 bg-black/20 rounded-xl overflow-hidden border border-theme-gold/10 relative">
                         <ImageComparator 
                         originalImage={sourceImage.objectURL || ''} 
                         generatedImage={generatedImage} 
                         />
+                        
+                        {/* Image Selector Overlay */}
+                        {generatedImages.length > 1 && (
+                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 bg-black/50 backdrop-blur-md p-2 rounded-full border border-white/10 z-10">
+                                {generatedImages.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setSelectedImageIndex(idx)}
+                                        className={`w-8 h-8 rounded-full text-xs font-medium transition-all flex items-center justify-center border
+                                            ${selectedImageIndex === idx
+                                                ? 'bg-theme-gold text-theme-base border-theme-gold shadow-lg scale-110'
+                                                : 'bg-white/10 text-white border-white/20 hover:bg-white/20'}
+                                        `}
+                                    >
+                                        {idx + 1}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="flex justify-center gap-4 py-2">
                       <a 
