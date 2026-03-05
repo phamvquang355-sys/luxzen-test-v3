@@ -59,18 +59,7 @@ export enum Tool {
   ADVANCED_EDIT = 'advanced_edit',
   SKETCH_CONVERTER = 'sketch_converter',
   VIEW_SYNC = 'view_sync',
-  VIDEO_GENERATOR = 'video_generator', // NEW: Tạo Phim
-  VIDEO_SEQUENCE = 'video_sequence' // NEW: Chuỗi Video (Storyboard)
-}
-
-export interface VideoScene {
-  id: string;
-  image: string | null;
-  prompt: string;
-  shotType: string;
-  status: 'idle' | 'loading' | 'success' | 'error';
-  videoUrl?: string;
-  error?: string;
+  VIDEO_GENERATOR = 'video_generator' // NEW: Tạo Phim
 }
 
 export type Resolution = '1K' | '2K' | '4K';

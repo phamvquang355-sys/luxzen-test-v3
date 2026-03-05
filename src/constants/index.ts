@@ -1,5 +1,5 @@
 
-import { OptionItem, ViewOption } from './types';
+import { OptionItem, ViewOption } from '../types';
 
 export const WEDDING_CATEGORIES: OptionItem[] = [
   { value: 'none', label: 'Tự động (AI đề xuất)', description: 'AI tự phân tích ảnh để xác định hạng mục (Sân khấu, Cổng chào, v.v.)' },
